@@ -1,3 +1,8 @@
-fn main() {
-    println!("Hello, world!");
-}
+mod registers;
+
+use registers::Registers;
+
+fn main() 
+    {
+        let regs = Registers::default();
+    }
