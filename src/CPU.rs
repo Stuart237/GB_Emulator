@@ -209,7 +209,7 @@ impl CPU
         {
             let (new_value, overflow) = self.registers.a.overflowing_add(value);
             let (final_value, second_overflow) = new_value.overflowing_add(self.registers.f.carry as u8);
-            self.registers.f.zero = new_value == 0; 
+            self.registers.f.zero = final_value == 0; 
             self.registers.f.subtract = false; 
             self.registers.f.half_carry = (self.registers.a & 0x0F) + (value & 0x0F) > 0x0F; 
             self.registers.f.carry = overflow | second_overflow;
