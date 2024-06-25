@@ -1,8 +1,6 @@
-mod registers;
-
-use registers::Registers;
+pub mod CPU;
 
 fn main() 
     {
-        let regs = Registers::default();
+
     }
