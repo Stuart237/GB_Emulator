@@ -5,10 +5,9 @@ pub struct Registers {
     c: u8,
     d: u8,
     e: u8,
-    pub f: FlagsRegister,
+    f: FlagsRegister,
     h: u8,
     l: u8,
-
 }
 
 //Implements functionality for the registers structure
@@ -131,11 +130,16 @@ struct CPU
 
 enum Instructions
 {
-    ADD(ArithmeticTarget)
+    ADD(ArithmeticTarget),
+    ADDHL(ArithmeticTarget16)
 }
 enum ArithmeticTarget
 {
     A, B, C, D, E, H, L
+}
+enum ArithmeticTarget16
+{
+    HL, BC, DE, AF
 }
 
 impl CPU
@@ -157,6 +161,16 @@ impl CPU
                         ArithmeticTarget::L => {self.registers.a = self.add(self.registers.l);}
                     }
                 }
+                Instructions::ADDHL(target) =>
+                {
+                    match target
+                    {
+                        ArithmeticTarget16::AF => {let af = self.registers.get_af(); let result = self.addhl(af); self.registers.set_hl(result);}
+                        ArithmeticTarget16::BC => {let bc = self.registers.get_bc(); let result = self.addhl(bc); self.registers.set_hl(result);}
+                        ArithmeticTarget16::DE => {let de = self.registers.get_de(); let result = self.addhl(de); self.registers.set_hl(result);}
+                        ArithmeticTarget16::HL => {let hl = self.registers.get_hl(); let result = self.addhl(hl); self.registers.set_hl(result);}
+                    }
+                }
             }
         }
     fn add(&mut self, value: u8) -> u8
@@ -173,7 +187,7 @@ impl CPU
             let (new_value, overflow) = (self.registers.a as u16).overflowing_add(value);
             self.registers.f.zero = new_value == 0; 
             self.registers.f.subtract = false; 
-            self.registers.f.half_carry = ((self.registers.a as u16) & 0x000F) + (value & 0x000F) > 0x000F; 
+            self.registers.f.half_carry = ((self.registers.a as u16) & 0x0FFF) + (value & 0x0FFF) > 0x0FFF; 
             self.registers.f.carry = overflow;
             new_value
         }
