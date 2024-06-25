@@ -132,7 +132,8 @@ enum Instructions
 {
     ADD(ArithmeticTarget),
     ADDHL(ArithmeticTarget16),
-    ADC(ArithmeticTarget)
+    ADC(ArithmeticTarget),
+    SUB(ArithmeticTarget)
 }
 enum ArithmeticTarget
 {
@@ -185,6 +186,19 @@ impl CPU
                         ArithmeticTarget::L => {self.registers.a = self.adc(self.registers.l);}   
                     }
                 }
+                Instructions::SUB(target) => 
+                {
+                    match target
+                    {
+                        ArithmeticTarget::A => {self.registers.a = self.sub(self.registers.a);}
+                        ArithmeticTarget::B => {self.registers.a = self.sub(self.registers.b);}
+                        ArithmeticTarget::C => {self.registers.a = self.sub(self.registers.c);}
+                        ArithmeticTarget::D => {self.registers.a = self.sub(self.registers.d);}
+                        ArithmeticTarget::E => {self.registers.a = self.sub(self.registers.e);}
+                        ArithmeticTarget::H => {self.registers.a = self.sub(self.registers.h);}
+                        ArithmeticTarget::L => {self.registers.a = self.sub(self.registers.l);}
+                    }
+                }
             }
         }
     fn add(&mut self, value: u8) -> u8
@@ -214,5 +228,14 @@ impl CPU
             self.registers.f.half_carry = (self.registers.a & 0x0F) + (value & 0x0F) > 0x0F; 
             self.registers.f.carry = overflow | second_overflow;
             final_value
+        }
+    fn sub(&mut self, value: u8) -> u8
+        {
+            let (new_value, overflow) = self.registers.a.overflowing_sub(value);
+            self.registers.f.zero = new_value == 0; 
+            self.registers.f.subtract = true; 
+            self.registers.f.half_carry = (self.registers.a & 0x0F) < (value & 0x0F); 
+            self.registers.f.carry = overflow;
+            new_value
         }
 }
