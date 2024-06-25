@@ -132,7 +132,8 @@ enum Instructions
 {
     ADD(ArithmeticTarget),
     ADDHL(ArithmeticTarget16),
-    ADC(ArithmeticTarget)
+    ADC(ArithmeticTarget),
+    SBC(ArithmeticTarget)
 }
 enum ArithmeticTarget
 {
@@ -185,6 +186,19 @@ impl CPU
                         ArithmeticTarget::L => {self.registers.a = self.adc(self.registers.l);}   
                     }
                 }
+                Instructions::SBC(target) =>
+                {
+                    match target 
+                    {
+                        ArithmeticTarget::A => {self.registers.a = self.sbc(self.registers.a);}
+                        ArithmeticTarget::B => {self.registers.a = self.sbc(self.registers.b);}
+                        ArithmeticTarget::C => {self.registers.a = self.sbc(self.registers.c);}
+                        ArithmeticTarget::D => {self.registers.a = self.sbc(self.registers.d);}
+                        ArithmeticTarget::E => {self.registers.a = self.sbc(self.registers.e);}
+                        ArithmeticTarget::H => {self.registers.a = self.sbc(self.registers.h);}
+                        ArithmeticTarget::L => {self.registers.a = self.sbc(self.registers.l);}   
+                    }
+                }
             }
         }
     fn add(&mut self, value: u8) -> u8
@@ -212,6 +226,16 @@ impl CPU
             self.registers.f.zero = final_value == 0; 
             self.registers.f.subtract = false; 
             self.registers.f.half_carry = (self.registers.a & 0x0F) + (value & 0x0F) > 0x0F; 
+            self.registers.f.carry = overflow | second_overflow;
+            final_value
+        }
+    fn sbc(&mut self, value: u8) -> u8
+        {
+            let (new_value, overflow) = self.registers.a.overflowing_sub(value);
+            let (final_value, second_overflow) = new_value.overflowing_sub(self.registers.f.carry as u8);
+            self.registers.f.zero = final_value == 0; 
+            self.registers.f.subtract = true; 
+            self.registers.f.half_carry = (self.registers.a & 0x0F) < (value & 0x0F); 
             self.registers.f.carry = overflow | second_overflow;
             final_value
         }
