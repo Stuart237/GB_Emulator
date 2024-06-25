@@ -134,7 +134,9 @@ enum Instructions
     ADDHL(ArithmeticTarget16),
     ADC(ArithmeticTarget),
     SUB(ArithmeticTarget),
-    SBC(ArithmeticTarget)
+    SBC(ArithmeticTarget),
+    AND(ArithmeticTarget),
+    OR(ArithmeticTarget)
 }
 enum ArithmeticTarget
 {
@@ -212,8 +214,33 @@ impl CPU
                         ArithmeticTarget::H => {self.registers.a = self.sbc(self.registers.h);}
                         ArithmeticTarget::L => {self.registers.a = self.sbc(self.registers.l);}  
                     }
+                }
+                Instructions::AND(target) =>
+                {
+                    match target 
+                    {
+                        ArithmeticTarget::A => {self.and(self.registers.a);}
+                        ArithmeticTarget::B => {self.and(self.registers.b);}
+                        ArithmeticTarget::C => {self.and(self.registers.c);}
+                        ArithmeticTarget::D => {self.and(self.registers.d);}
+                        ArithmeticTarget::E => {self.and(self.registers.e);}
+                        ArithmeticTarget::H => {self.and(self.registers.h);}
+                        ArithmeticTarget::L => {self.and(self.registers.l);}  
+                    }
                 } 
-                
+                Instructions::OR(target) =>
+                {
+                    match target 
+                    {
+                        ArithmeticTarget::A => {self.or(self.registers.a);}
+                        ArithmeticTarget::B => {self.or(self.registers.b);}
+                        ArithmeticTarget::C => {self.or(self.registers.c);}
+                        ArithmeticTarget::D => {self.or(self.registers.d);}
+                        ArithmeticTarget::E => {self.or(self.registers.e);}
+                        ArithmeticTarget::H => {self.or(self.registers.h);}
+                        ArithmeticTarget::L => {self.or(self.registers.l);}  
+                    }
+                } 
             }
         }
     fn add(&mut self, value: u8) -> u8
@@ -263,5 +290,23 @@ impl CPU
             self.registers.f.carry = overflow | second_overflow;
             final_value
         }
+    fn and(&mut self, value: u8)
+        {
+            self.registers.a = self.registers.a & value;
+            self.registers.f.zero = self.registers.a == 0; 
+            self.registers.f.subtract = false; 
+            self.registers.f.half_carry = true; 
+            self.registers.f.carry = false;
+        }
+    fn or(&mut self, value: u8)
+        {
+            self.registers.a = self.registers.a | value;
+            self.registers.f.zero = self.registers.a == 0; 
+            self.registers.f.subtract = false; 
+            self.registers.f.half_carry = true; 
+            self.registers.f.carry = false;
+        }
+
+    
     
 }
