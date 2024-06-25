@@ -241,7 +241,7 @@ impl CPU
                         ArithmeticTarget::H => {self.or(self.registers.h);}
                         ArithmeticTarget::L => {self.or(self.registers.l);}  
                     }
-                }
+                } 
                 Instructions::XOR(target) =>
                 {
                     match target 
