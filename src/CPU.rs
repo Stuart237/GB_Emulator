@@ -131,7 +131,8 @@ struct CPU
 enum Instructions
 {
     ADD(ArithmeticTarget),
-    ADDHL(ArithmeticTarget16)
+    ADDHL(ArithmeticTarget16),
+    ADC(ArithmeticTarget)
 }
 enum ArithmeticTarget
 {
@@ -171,6 +172,19 @@ impl CPU
                         ArithmeticTarget16::HL => {let hl = self.registers.get_hl(); let result = self.addhl(hl); self.registers.set_hl(result);}
                     }
                 }
+                Instructions::ADC(target) =>
+                {
+                    match target 
+                    {
+                        ArithmeticTarget::A => {self.registers.a = self.adc(self.registers.a);}
+                        ArithmeticTarget::B => {self.registers.a = self.adc(self.registers.b);}
+                        ArithmeticTarget::C => {self.registers.a = self.adc(self.registers.c);}
+                        ArithmeticTarget::D => {self.registers.a = self.adc(self.registers.d);}
+                        ArithmeticTarget::E => {self.registers.a = self.adc(self.registers.e);}
+                        ArithmeticTarget::H => {self.registers.a = self.adc(self.registers.h);}
+                        ArithmeticTarget::L => {self.registers.a = self.adc(self.registers.l);}   
+                    }
+                }
             }
         }
     fn add(&mut self, value: u8) -> u8
@@ -190,5 +204,15 @@ impl CPU
             self.registers.f.half_carry = ((self.registers.a as u16) & 0x0FFF) + (value & 0x0FFF) > 0x0FFF; 
             self.registers.f.carry = overflow;
             new_value
+        }
+    fn adc(&mut self, value: u8) -> u8
+        {
+            let (new_value, overflow) = self.registers.a.overflowing_add(value);
+            let (final_value, second_overflow) = new_value.overflowing_add(self.registers.f.carry as u8);
+            self.registers.f.zero = new_value == 0; 
+            self.registers.f.subtract = false; 
+            self.registers.f.half_carry = (self.registers.a & 0x0F) + (value & 0x0F) > 0x0F; 
+            self.registers.f.carry = overflow | second_overflow;
+            final_value
         }
 }
