@@ -136,7 +136,8 @@ enum Instructions
     SUB(ArithmeticTarget),
     SBC(ArithmeticTarget),
     AND(ArithmeticTarget),
-    OR(ArithmeticTarget)
+    OR(ArithmeticTarget),
+    XOR(ArithmeticTarget)
 }
 enum ArithmeticTarget
 {
@@ -240,7 +241,20 @@ impl CPU
                         ArithmeticTarget::H => {self.or(self.registers.h);}
                         ArithmeticTarget::L => {self.or(self.registers.l);}  
                     }
-                } 
+                }
+                Instructions::XOR(target) =>
+                {
+                    match target 
+                    {
+                        ArithmeticTarget::A => {self.xor(self.registers.a);}
+                        ArithmeticTarget::B => {self.xor(self.registers.b);}
+                        ArithmeticTarget::C => {self.xor(self.registers.c);}
+                        ArithmeticTarget::D => {self.xor(self.registers.d);}
+                        ArithmeticTarget::E => {self.xor(self.registers.e);}
+                        ArithmeticTarget::H => {self.xor(self.registers.h);}
+                        ArithmeticTarget::L => {self.xor(self.registers.l);}  
+                    }
+                }  
             }
         }
     fn add(&mut self, value: u8) -> u8
@@ -306,7 +320,12 @@ impl CPU
             self.registers.f.half_carry = true; 
             self.registers.f.carry = false;
         }
-
-    
-    
+    fn xor(&mut self, value: u8)
+        {
+            self.registers.a = (self.registers.a | value) & !(self.registers.a & value);
+            self.registers.f.zero = self.registers.a == 0; 
+            self.registers.f.subtract = false; 
+            self.registers.f.half_carry = true; 
+            self.registers.f.carry = false;
+        }
 }
