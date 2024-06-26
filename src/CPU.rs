@@ -137,7 +137,8 @@ enum Instructions
     SBC(ArithmeticTarget),
     AND(ArithmeticTarget),
     OR(ArithmeticTarget),
-    XOR(ArithmeticTarget)
+    XOR(ArithmeticTarget),
+    CP(ArithmeticTarget)
 }
 enum ArithmeticTarget
 {
@@ -254,6 +255,19 @@ impl CPU
                         ArithmeticTarget::H => {self.xor(self.registers.h);}
                         ArithmeticTarget::L => {self.xor(self.registers.l);}  
                     }
+                }
+                Instructions::CP(target) => 
+                {
+                    match target
+                    {
+                        ArithmeticTarget::A => {self.cp(self.registers.a);}
+                        ArithmeticTarget::B => {self.cp(self.registers.b);}
+                        ArithmeticTarget::C => {self.cp(self.registers.c);}
+                        ArithmeticTarget::D => {self.cp(self.registers.d);}
+                        ArithmeticTarget::E => {self.cp(self.registers.e);}
+                        ArithmeticTarget::H => {self.cp(self.registers.h);}
+                        ArithmeticTarget::L => {self.cp(self.registers.l);}
+                    }
                 }  
             }
         }
@@ -327,5 +341,13 @@ impl CPU
             self.registers.f.subtract = false; 
             self.registers.f.half_carry = true; 
             self.registers.f.carry = false;
+        }
+    fn cp(&mut self, value: u8)
+        {
+            let (new_value, overflow) = self.registers.a.overflowing_sub(value);
+            self.registers.f.zero = new_value == 0; 
+            self.registers.f.subtract = true; 
+            self.registers.f.half_carry = (self.registers.a & 0x0F) < (value & 0x0F); 
+            self.registers.f.carry = overflow;
         }
 }
