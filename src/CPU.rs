@@ -150,7 +150,17 @@ enum Instructions
     RRCA(),
     RLCA(),
     CPL(),
-    BIT(ArithmeticTarget, u8)
+    BIT(ArithmeticTarget, u8),
+    RES(ArithmeticTarget, u8),
+    SET(ArithmeticTarget, u8),
+    SRL(ArithmeticTarget),
+    RR(ArithmeticTarget),
+    RL(ArithmeticTarget),
+    RRC(ArithmeticTarget),
+    RLC(ArithmeticTarget),
+    SRA(ArithmeticTarget),
+    SLA(ArithmeticTarget),
+    SWAP(ArithmeticTarget)
 }
 enum ArithmeticTarget
 {
@@ -368,6 +378,136 @@ impl CPU
                         ArithmeticTarget::L => {self.bit(bit, self.registers.l);}
                     }
                 }
+                Instructions::RES(target, bit) =>
+                {
+                    match target 
+                    {
+                        ArithmeticTarget::A => {self.registers.a = self.res(bit, self.registers.a);}
+                        ArithmeticTarget::B => {self.registers.b = self.res(bit, self.registers.b);}
+                        ArithmeticTarget::C => {self.registers.c = self.res(bit, self.registers.c);}
+                        ArithmeticTarget::D => {self.registers.d = self.res(bit, self.registers.d);}
+                        ArithmeticTarget::E => {self.registers.e = self.res(bit, self.registers.e);}
+                        ArithmeticTarget::H => {self.registers.h = self.res(bit, self.registers.h);}
+                        ArithmeticTarget::L => {self.registers.l = self.res(bit, self.registers.l);}    
+                    }
+                }
+                Instructions::SET(target, bit) =>
+                {
+                    match target 
+                    {
+                        ArithmeticTarget::A => {self.registers.a = self.set(bit, self.registers.a);}
+                        ArithmeticTarget::B => {self.registers.b = self.set(bit, self.registers.b);}
+                        ArithmeticTarget::C => {self.registers.c = self.set(bit, self.registers.c);}
+                        ArithmeticTarget::D => {self.registers.d = self.set(bit, self.registers.d);}
+                        ArithmeticTarget::E => {self.registers.e = self.set(bit, self.registers.e);}
+                        ArithmeticTarget::H => {self.registers.h = self.set(bit, self.registers.h);}
+                        ArithmeticTarget::L => {self.registers.l = self.set(bit, self.registers.l);}    
+                    }
+                }
+                Instructions::SRL(target) =>
+                {
+                    match target
+                    {
+                        ArithmeticTarget::A => {self.registers.a = self.srl(self.registers.a);}
+                        ArithmeticTarget::B => {self.registers.b = self.srl(self.registers.b);}
+                        ArithmeticTarget::C => {self.registers.c = self.srl(self.registers.c);}
+                        ArithmeticTarget::D => {self.registers.d = self.srl(self.registers.d);}
+                        ArithmeticTarget::E => {self.registers.e = self.srl(self.registers.e);}
+                        ArithmeticTarget::H => {self.registers.h = self.srl(self.registers.h);}
+                        ArithmeticTarget::L => {self.registers.l = self.srl(self.registers.l);}
+                    }
+                }
+                Instructions::RR(target) =>
+                {
+                    match target
+                    {
+                        ArithmeticTarget::A => {self.registers.a = self.rr(self.registers.a);}
+                        ArithmeticTarget::B => {self.registers.b = self.rr(self.registers.b);}
+                        ArithmeticTarget::C => {self.registers.c = self.rr(self.registers.c);}
+                        ArithmeticTarget::D => {self.registers.d = self.rr(self.registers.d);}
+                        ArithmeticTarget::E => {self.registers.e = self.rr(self.registers.e);}
+                        ArithmeticTarget::H => {self.registers.h = self.rr(self.registers.h);}
+                        ArithmeticTarget::L => {self.registers.l = self.rr(self.registers.l);}
+                    }
+                }
+                Instructions::RL(target) =>
+                {
+                    match target
+                    {
+                        ArithmeticTarget::A => {self.registers.a = self.rl(self.registers.a);}
+                        ArithmeticTarget::B => {self.registers.b = self.rl(self.registers.b);}
+                        ArithmeticTarget::C => {self.registers.c = self.rl(self.registers.c);}
+                        ArithmeticTarget::D => {self.registers.d = self.rl(self.registers.d);}
+                        ArithmeticTarget::E => {self.registers.e = self.rl(self.registers.e);}
+                        ArithmeticTarget::H => {self.registers.h = self.rl(self.registers.h);}
+                        ArithmeticTarget::L => {self.registers.l = self.rl(self.registers.l);}
+                    }
+                }
+                Instructions::RRC(target) =>
+                {
+                    match target
+                    {
+                        ArithmeticTarget::A => {self.registers.a = self.rrc(self.registers.a);}
+                        ArithmeticTarget::B => {self.registers.b = self.rrc(self.registers.b);}
+                        ArithmeticTarget::C => {self.registers.c = self.rrc(self.registers.c);}
+                        ArithmeticTarget::D => {self.registers.d = self.rrc(self.registers.d);}
+                        ArithmeticTarget::E => {self.registers.e = self.rrc(self.registers.e);}
+                        ArithmeticTarget::H => {self.registers.h = self.rrc(self.registers.h);}
+                        ArithmeticTarget::L => {self.registers.l = self.rrc(self.registers.l);}
+                    }
+                }
+                Instructions::RLC(target) =>
+                {
+                    match target
+                    {
+                        ArithmeticTarget::A => {self.registers.a = self.rlc(self.registers.a);}
+                        ArithmeticTarget::B => {self.registers.b = self.rlc(self.registers.b);}
+                        ArithmeticTarget::C => {self.registers.c = self.rlc(self.registers.c);}
+                        ArithmeticTarget::D => {self.registers.d = self.rlc(self.registers.d);}
+                        ArithmeticTarget::E => {self.registers.e = self.rlc(self.registers.e);}
+                        ArithmeticTarget::H => {self.registers.h = self.rlc(self.registers.h);}
+                        ArithmeticTarget::L => {self.registers.l = self.rlc(self.registers.l);}
+                    }
+                }
+                Instructions::SRA(target) =>
+                {
+                    match target
+                    {
+                        ArithmeticTarget::A => {self.registers.a = self.sra(self.registers.a);}
+                        ArithmeticTarget::B => {self.registers.b = self.sra(self.registers.b);}
+                        ArithmeticTarget::C => {self.registers.c = self.sra(self.registers.c);}
+                        ArithmeticTarget::D => {self.registers.d = self.sra(self.registers.d);}
+                        ArithmeticTarget::E => {self.registers.e = self.sra(self.registers.e);}
+                        ArithmeticTarget::H => {self.registers.h = self.sra(self.registers.h);}
+                        ArithmeticTarget::L => {self.registers.l = self.sra(self.registers.l);}
+                    }
+                }
+                Instructions::SLA(target) =>
+                {
+                    match target
+                    {
+                        ArithmeticTarget::A => {self.registers.a = self.sla(self.registers.a);}
+                        ArithmeticTarget::B => {self.registers.b = self.sla(self.registers.b);}
+                        ArithmeticTarget::C => {self.registers.c = self.sla(self.registers.c);}
+                        ArithmeticTarget::D => {self.registers.d = self.sla(self.registers.d);}
+                        ArithmeticTarget::E => {self.registers.e = self.sla(self.registers.e);}
+                        ArithmeticTarget::H => {self.registers.h = self.sla(self.registers.h);}
+                        ArithmeticTarget::L => {self.registers.l = self.sla(self.registers.l);}
+                    }
+                }
+                Instructions::SWAP(target) =>
+                {
+                    match target
+                    {
+                        ArithmeticTarget::A => {self.registers.a = self.swap(self.registers.a);}
+                        ArithmeticTarget::B => {self.registers.b = self.swap(self.registers.b);}
+                        ArithmeticTarget::C => {self.registers.c = self.swap(self.registers.c);}
+                        ArithmeticTarget::D => {self.registers.d = self.swap(self.registers.d);}
+                        ArithmeticTarget::E => {self.registers.e = self.swap(self.registers.e);}
+                        ArithmeticTarget::H => {self.registers.h = self.swap(self.registers.h);}
+                        ArithmeticTarget::L => {self.registers.l = self.swap(self.registers.l);}
+                    }
+                }
             }
         }
     fn add(&mut self, value: u8) -> u8
@@ -520,6 +660,7 @@ impl CPU
     fn rrca(&mut self)
         {
             let highest = (self.registers.a & 0x01) << 7;
+            self.registers.f.carry = (highest >> 7) != 0;
             self.registers.a = (self.registers.a >> 1) | highest;
             self.registers.f.zero = false; 
             self.registers.f.subtract = false; 
@@ -528,6 +669,7 @@ impl CPU
     fn rlca(&mut self)
         {
             let lowest = (self.registers.a & 0b10000000) >> 7;
+            self.registers.f.carry = (lowest) != 0;
             self.registers.a = (self.registers.a << 1) | lowest;
             self.registers.f.zero = false; 
             self.registers.f.subtract = false; 
@@ -539,11 +681,98 @@ impl CPU
             self.registers.f.subtract = true; 
             self.registers.f.half_carry = true;
         }
-    fn bit(&mut self, value: u8, bit: u8)
+    fn bit(&mut self, bit: u8, value: u8)
         {
             let to_check = (value >> bit) & 0x01;
             self.registers.f.zero = to_check == 0;
             self.registers.f.subtract = false;
             self.registers.f.half_carry = true;
+        }
+    fn res(&mut self, bit: u8, value: u8) -> u8
+        {
+            let bit_num = !(0x01 << bit);
+            let new_value = value & bit_num;
+            new_value
+        }
+    fn set(&mut self, bit: u8, value: u8) -> u8
+        {
+            let bit_num = 0x01 << bit;
+            let new_value = value | bit_num;
+            new_value
+        }
+    fn srl(&mut self, value: u8) -> u8
+        {
+            self.registers.f.carry = (value & 0x01) != 0;
+            let new_value = value >> 1;
+            self.registers.f.zero = new_value == 0; 
+            self.registers.f.subtract = false; 
+            self.registers.f.half_carry = false;
+            new_value
+        }
+    fn rr(&mut self, value: u8) -> u8
+        {
+            let old_carry = (self.registers.f.carry as u8) << 7;
+            self.registers.f.carry = (value & 0x01) != 0;
+            let new_value = (value >> 1) | old_carry;
+            self.registers.f.zero = new_value == 0; 
+            self.registers.f.subtract = false; 
+            self.registers.f.half_carry = false;
+            new_value
+        }
+    fn rl(&mut self, value: u8) -> u8
+        {
+            let old_carry = self.registers.f.carry as u8;
+            self.registers.f.carry = (value & 0b10000000) != 0;
+            let new_value = (value << 1) | old_carry;
+            self.registers.f.zero = new_value == 0; 
+            self.registers.f.subtract = false; 
+            self.registers.f.half_carry = false;
+            new_value
+        }
+    fn rrc(&mut self, value: u8) -> u8
+        {
+            self.registers.f.carry = (value & 0x01) != 0;
+            let new_value = (value >> 1) | (self.registers.f.carry as u8) << 7;
+            self.registers.f.zero = new_value == 0; 
+            self.registers.f.subtract = false; 
+            self.registers.f.half_carry = false;
+            new_value
+        }
+    fn rlc(&mut self, value: u8) -> u8
+        {
+            self.registers.f.carry = (value & 0b10000000) != 0;
+            let new_value = (value << 1) | self.registers.f.carry as u8;
+            self.registers.f.zero = new_value == 0; 
+            self.registers.f.subtract = false; 
+            self.registers.f.half_carry = false;
+            new_value
+        }
+    fn sra(&mut self, value: u8) -> u8
+        {
+            let msb = value & 0b10000000;
+            self.registers.f.carry = value & 0x01 != 0;
+            let new_value = (value >> 1) | msb;
+            self.registers.f.zero = new_value == 0; 
+            self.registers.f.subtract = false; 
+            self.registers.f.half_carry = false;
+            new_value
+        }
+    fn sla(&mut self, value: u8) -> u8
+        {
+            self.registers.f.carry = (value & 0b10000000) != 0;
+            let new_value = value << 1;
+            self.registers.f.zero = new_value == 0; 
+            self.registers.f.subtract = false; 
+            self.registers.f.half_carry = false;
+            new_value
+        }
+    fn swap(&mut self, value: u8) -> u8
+        {
+            let new_value = value >> 4 | value << 4;
+            self.registers.f.zero = new_value == 0; 
+            self.registers.f.subtract = false; 
+            self.registers.f.half_carry = false;
+            self.registers.f.carry = false;
+            new_value
         }
 }
