@@ -201,6 +201,15 @@ impl Instruction
                     0x0C => Some(Instruction::INC8(ArithmeticTarget::C)),
                     0x0D => Some(Instruction::DEC8(ArithmeticTarget::C)),
                     0x0F => Some(Instruction::RRCA()),
+                    0x13 => Some(Instruction::INC16(ArithmeticTarget16::DE)),
+                    0x14 => Some(Instruction::INC8(ArithmeticTarget::D)),
+                    0x15 => Some(Instruction::DEC8(ArithmeticTarget::D)),
+                    0x17 => Some(Instruction::RLA()),
+                    0x19 => Some(Instruction::ADDHL(ArithmeticTarget16::DE)),
+                    0x1B => Some(Instruction::DEC16(ArithmeticTarget16::DE)),
+                    0x1C => Some(Instruction::INC8(ArithmeticTarget::E)),
+                    0x1D => Some(Instruction::DEC8(ArithmeticTarget::E)),
+                    0x1F => Some(Instruction::RRA()),
                     0x80 => Some(Instruction::ADD(ArithmeticTarget::B)),
 
                 }
