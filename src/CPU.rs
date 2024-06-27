@@ -149,7 +149,8 @@ enum Instructions
     RLA(),
     RRCA(),
     RLCA(),
-    CPL()
+    CPL(),
+    BIT(ArithmeticTarget, u8)
 }
 enum ArithmeticTarget
 {
@@ -354,6 +355,19 @@ impl CPU
                 {
                     self.cpl();
                 }
+                Instructions::BIT(target, bit) =>
+                {
+                    match target
+                    {
+                        ArithmeticTarget::A => {self.bit(bit, self.registers.a);}
+                        ArithmeticTarget::B => {self.bit(bit, self.registers.b);}
+                        ArithmeticTarget::C => {self.bit(bit, self.registers.c);}
+                        ArithmeticTarget::D => {self.bit(bit, self.registers.d);}
+                        ArithmeticTarget::E => {self.bit(bit, self.registers.e);}
+                        ArithmeticTarget::H => {self.bit(bit, self.registers.h);}
+                        ArithmeticTarget::L => {self.bit(bit, self.registers.l);}
+                    }
+                }
             }
         }
     fn add(&mut self, value: u8) -> u8
@@ -523,6 +537,13 @@ impl CPU
         {
             self.registers.a = !self.registers.a;
             self.registers.f.subtract = true; 
+            self.registers.f.half_carry = true;
+        }
+    fn bit(&mut self, value: u8, bit: u8)
+        {
+            let to_check = (value >> bit) & 0x01;
+            self.registers.f.zero = to_check == 0;
+            self.registers.f.subtract = false;
             self.registers.f.half_carry = true;
         }
 }
