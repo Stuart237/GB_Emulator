@@ -145,7 +145,11 @@ enum Instructions
     DEC16(ArithmeticTarget16),
     CCF(),
     SCF(),
-    RRA()
+    RRA(),
+    RLA(),
+    RRCA(),
+    RLCA(),
+    CPL()
 }
 enum ArithmeticTarget
 {
@@ -334,6 +338,22 @@ impl CPU
                 {
                     self.rra();
                 }
+                Instructions::RLA() =>
+                {
+                    self.rla();
+                }
+                Instructions::RRCA() =>
+                {
+                    self.rrca();
+                }
+                Instructions::RLCA() =>
+                {
+                    self.rlca();
+                }
+                Instructions::CPL() =>
+                {
+                    self.cpl();
+                }
             }
         }
     fn add(&mut self, value: u8) -> u8
@@ -416,54 +436,93 @@ impl CPU
             self.registers.f.carry = overflow;
         }
     fn inc_8(&mut self, value: u8) -> u8
-    {
-        let (new_value, overflow) = value.overflowing_add(1);
-        self.registers.f.zero = new_value == 0; 
-        self.registers.f.subtract = false; 
-        self.registers.f.half_carry = (value & 0x0F) == 0x0F; 
-        self.registers.f.carry = overflow;
-        new_value
-    }
+        {
+            let (new_value, overflow) = value.overflowing_add(1);
+            self.registers.f.zero = new_value == 0; 
+            self.registers.f.subtract = false; 
+            self.registers.f.half_carry = (value & 0x0F) == 0x0F; 
+            self.registers.f.carry = overflow;
+            new_value
+        }
     fn inc_16(&mut self, value: u16) -> u16
-    {
-        let (new_value, overflow) = value.overflowing_add(1);
-        self.registers.f.zero = new_value == 0; 
-        self.registers.f.subtract = false; 
-        self.registers.f.half_carry = (value & 0x0FFF) == 0x0FFF; 
-        self.registers.f.carry = overflow;
-        new_value
-    }
+        {
+            let (new_value, overflow) = value.overflowing_add(1);
+            self.registers.f.zero = new_value == 0; 
+            self.registers.f.subtract = false; 
+            self.registers.f.half_carry = (value & 0x0FFF) == 0x0FFF; 
+            self.registers.f.carry = overflow;
+            new_value
+        }
     fn dec_8(&mut self, value: u8) -> u8
-    {
-        let (new_value, overflow) = value.overflowing_sub(1);
-        self.registers.f.zero = new_value == 0; 
-        self.registers.f.subtract = false; 
-        self.registers.f.half_carry = (value & 0x0F) < 1; 
-        self.registers.f.carry = overflow;
-        new_value
-    }
+        {
+            let (new_value, overflow) = value.overflowing_sub(1);
+            self.registers.f.zero = new_value == 0; 
+            self.registers.f.subtract = false; 
+            self.registers.f.half_carry = (value & 0x0F) < 1; 
+            self.registers.f.carry = overflow;
+            new_value
+        }
     fn dec_16(&mut self, value: u16) -> u16
-    {
-        let (new_value, overflow) = value.overflowing_sub(1);
-        self.registers.f.zero = new_value == 0; 
-        self.registers.f.subtract = false; 
-        self.registers.f.half_carry = 1 > (value & 0x0FFF); 
-        self.registers.f.carry = overflow;
-        new_value
-    }
+        {
+            let (new_value, overflow) = value.overflowing_sub(1);
+            self.registers.f.zero = new_value == 0; 
+            self.registers.f.subtract = false; 
+            self.registers.f.half_carry = 1 > (value & 0x0FFF); 
+            self.registers.f.carry = overflow;
+            new_value
+        }
     fn ccf(&mut self)
-    {
-        self.registers.f.carry = !self.registers.f.carry;
-    }
+        {
+            self.registers.f.carry = !self.registers.f.carry;
+            self.registers.f.subtract = false; 
+            self.registers.f.half_carry = false;
+        }
     fn scf(&mut self)
-    {
-        self.registers.f.carry = true;
-    }
+        {
+            self.registers.f.carry = true;
+            self.registers.f.subtract = false; 
+            self.registers.f.half_carry = false;
+        }
     fn rra(&mut self)
-    {
-        let oldcarry = (self.registers.f.carry as u8) << 7;
-        let newcarry = (self.registers.a & 0x01) != 0;
-        self.registers.a = (self.registers.a >> 1) | oldcarry;
-        self.registers.f.carry = newcarry;
-    }
+        {
+            let oldcarry = (self.registers.f.carry as u8) << 7;
+            let newcarry = (self.registers.a & 0x01) != 0;
+            self.registers.a = (self.registers.a >> 1) | oldcarry;
+            self.registers.f.carry = newcarry;
+            self.registers.f.zero = false; 
+            self.registers.f.subtract = false; 
+            self.registers.f.half_carry = false;
+        }
+    fn rla(&mut self)
+        {
+            let oldcarry = self.registers.f.carry as u8;
+            let newcarry = (self.registers.a & 0b10000000) != 0;
+            self.registers.a = (self.registers.a << 1) | oldcarry;
+            self.registers.f.carry = newcarry;
+            self.registers.f.zero = false; 
+            self.registers.f.subtract = false; 
+            self.registers.f.half_carry = false;
+        }
+    fn rrca(&mut self)
+        {
+            let highest = (self.registers.a & 0x01) << 7;
+            self.registers.a = (self.registers.a >> 1) | highest;
+            self.registers.f.zero = false; 
+            self.registers.f.subtract = false; 
+            self.registers.f.half_carry = false;
+        }
+    fn rlca(&mut self)
+        {
+            let lowest = (self.registers.a & 0b10000000) >> 7;
+            self.registers.a = (self.registers.a << 1) | lowest;
+            self.registers.f.zero = false; 
+            self.registers.f.subtract = false; 
+            self.registers.f.half_carry = false;
+        }
+    fn cpl(&mut self)
+        {
+            self.registers.a = !self.registers.a;
+            self.registers.f.subtract = true; 
+            self.registers.f.half_carry = true;
+        }
 }
