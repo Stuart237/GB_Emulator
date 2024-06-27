@@ -125,10 +125,25 @@ impl std::convert::From<&FlagsRegister> for u8 {
 
 struct CPU
 {
-    registers: Registers
+    registers: Registers,
+    pc: u16,
+    bus: MemoryBus
 }
 
-enum Instructions
+struct MemoryBus
+{
+    memory: [u8; 0xFFFF]
+}
+
+impl MemoryBus
+{
+    fn read_byte(&mut self, address: u16) -> u8
+    {
+        self.memory[address as usize]
+    }
+}
+
+enum Instruction
 {
     ADD(ArithmeticTarget),
     ADDHL(ArithmeticTarget16),
@@ -171,13 +186,49 @@ enum ArithmeticTarget16
     HL, BC, DE, AF
 }
 
+impl Instruction
+{
+    fn from_byte_not_prefixed(byte: u8) -> Option<Instruction>
+        {
+            match byte
+                {
+                    0x03 => Some(Instruction::INC16(ArithmeticTarget16::BC)),
+                    0x04 => Some(Instruction::INC8(ArithmeticTarget::B)),
+                    0x05 => Some(Instruction::DEC8(ArithmeticTarget::B)),
+                    0x07 => Some(Instruction::RLCA()),
+                    0x09 => Some(Instruction::ADDHL(ArithmeticTarget16::BC)),
+                    0x0B => Some(Instruction::DEC16(ArithmeticTarget16::BC)),
+                    0x0C => Some(Instruction::INC8(ArithmeticTarget::C)),
+                    0x0D => Some(Instruction::DEC8(ArithmeticTarget::C)),
+                    0x0F => Some(Instruction::RRCA()),
+                    0x80 => Some(Instruction::ADD(ArithmeticTarget::B)),
+
+                }
+        }
+}
+
 impl CPU
 {
-    fn execute(&mut self, instruction: Instructions)
+    fn step(&mut self)
+        {
+            let mut instruction_byte = self.bus.read_byte(self.pc);
+
+            let next_pc = if let Some(instruction) = Instruction::from_byte(instruction_byte)
+                {
+                    self.execute(instruction)
+                }
+            else
+                {
+                    panic!("Unknown instruction found for 0x{:x}", instruction_byte);
+                };
+            self.pc = next_pc;
+        }
+
+    fn execute(&mut self, instruction: Instruction)
         {
             match instruction
             {
-                Instructions::ADD(target) => 
+                Instruction::ADD(target) => 
                 {
                     match target
                     {
@@ -190,7 +241,7 @@ impl CPU
                         ArithmeticTarget::L => {self.registers.a = self.add(self.registers.l);}
                     }
                 }
-                Instructions::ADDHL(target) =>
+                Instruction::ADDHL(target) =>
                 {
                     match target
                     {
@@ -200,7 +251,7 @@ impl CPU
                         ArithmeticTarget16::HL => {let hl = self.registers.get_hl(); let result = self.addhl(hl); self.registers.set_hl(result);}
                     }
                 }
-                Instructions::ADC(target) =>
+                Instruction::ADC(target) =>
                 {
                     match target 
                     {
@@ -213,7 +264,7 @@ impl CPU
                         ArithmeticTarget::L => {self.registers.a = self.adc(self.registers.l);}   
                     }
                 }
-                Instructions::SUB(target) => 
+                Instruction::SUB(target) => 
                 {
                     match target
                     {
@@ -226,7 +277,7 @@ impl CPU
                         ArithmeticTarget::L => {self.registers.a = self.sub(self.registers.l);}
                     }
                 }
-                Instructions::SBC(target) =>
+                Instruction::SBC(target) =>
                 {
                     match target 
                     {
@@ -239,7 +290,7 @@ impl CPU
                         ArithmeticTarget::L => {self.registers.a = self.sbc(self.registers.l);}  
                     }
                 }
-                Instructions::AND(target) =>
+                Instruction::AND(target) =>
                 {
                     match target 
                     {
@@ -252,7 +303,7 @@ impl CPU
                         ArithmeticTarget::L => {self.and(self.registers.l);}  
                     }
                 } 
-                Instructions::OR(target) =>
+                Instruction::OR(target) =>
                 {
                     match target 
                     {
@@ -265,7 +316,7 @@ impl CPU
                         ArithmeticTarget::L => {self.or(self.registers.l);}  
                     }
                 } 
-                Instructions::XOR(target) =>
+                Instruction::XOR(target) =>
                 {
                     match target 
                     {
@@ -278,7 +329,7 @@ impl CPU
                         ArithmeticTarget::L => {self.xor(self.registers.l);}  
                     }
                 }
-                Instructions::CP(target) => 
+                Instruction::CP(target) => 
                 {
                     match target
                     {
@@ -291,7 +342,7 @@ impl CPU
                         ArithmeticTarget::L => {self.cp(self.registers.l);}
                     }
                 }
-                Instructions::INC8(target) =>
+                Instruction::INC8(target) =>
                 {
                     match target
                     {
@@ -304,7 +355,7 @@ impl CPU
                         ArithmeticTarget::L => {self.registers.l = self.inc_8(self.registers.l);}
                     }
                 }
-                Instructions::INC16(target) =>
+                Instruction::INC16(target) =>
                 {
                     match target
                     {
@@ -314,7 +365,7 @@ impl CPU
                         ArithmeticTarget16::HL => {let hl = self.registers.get_hl(); let result = self.inc_16(hl); self.registers.set_hl(result);}
                     }
                 }
-                Instructions::DEC8(target) =>
+                Instruction::DEC8(target) =>
                 {
                     match target
                     {
@@ -327,7 +378,7 @@ impl CPU
                         ArithmeticTarget::L => {self.registers.l = self.dec_8(self.registers.l);}
                     }
                 }
-                Instructions::DEC16(target) =>
+                Instruction::DEC16(target) =>
                 {
                     match target
                     {
@@ -337,35 +388,35 @@ impl CPU
                         ArithmeticTarget16::HL => {let hl = self.registers.get_hl(); let result = self.dec_16(hl); self.registers.set_hl(result);}
                     }
                 }
-                Instructions::CCF() =>
+                Instruction::CCF() =>
                 {
                     self.ccf();
                 }
-                Instructions::SCF() =>
+                Instruction::SCF() =>
                 {
                     self.scf();
                 }
-                Instructions::RRA() =>
+                Instruction::RRA() =>
                 {
                     self.rra();
                 }
-                Instructions::RLA() =>
+                Instruction::RLA() =>
                 {
                     self.rla();
                 }
-                Instructions::RRCA() =>
+                Instruction::RRCA() =>
                 {
                     self.rrca();
                 }
-                Instructions::RLCA() =>
+                Instruction::RLCA() =>
                 {
                     self.rlca();
                 }
-                Instructions::CPL() =>
+                Instruction::CPL() =>
                 {
                     self.cpl();
                 }
-                Instructions::BIT(target, bit) =>
+                Instruction::BIT(target, bit) =>
                 {
                     match target
                     {
@@ -378,7 +429,7 @@ impl CPU
                         ArithmeticTarget::L => {self.bit(bit, self.registers.l);}
                     }
                 }
-                Instructions::RES(target, bit) =>
+                Instruction::RES(target, bit) =>
                 {
                     match target 
                     {
@@ -391,7 +442,7 @@ impl CPU
                         ArithmeticTarget::L => {self.registers.l = self.res(bit, self.registers.l);}    
                     }
                 }
-                Instructions::SET(target, bit) =>
+                Instruction::SET(target, bit) =>
                 {
                     match target 
                     {
@@ -404,7 +455,7 @@ impl CPU
                         ArithmeticTarget::L => {self.registers.l = self.set(bit, self.registers.l);}    
                     }
                 }
-                Instructions::SRL(target) =>
+                Instruction::SRL(target) =>
                 {
                     match target
                     {
@@ -417,7 +468,7 @@ impl CPU
                         ArithmeticTarget::L => {self.registers.l = self.srl(self.registers.l);}
                     }
                 }
-                Instructions::RR(target) =>
+                Instruction::RR(target) =>
                 {
                     match target
                     {
@@ -430,7 +481,7 @@ impl CPU
                         ArithmeticTarget::L => {self.registers.l = self.rr(self.registers.l);}
                     }
                 }
-                Instructions::RL(target) =>
+                Instruction::RL(target) =>
                 {
                     match target
                     {
@@ -443,7 +494,7 @@ impl CPU
                         ArithmeticTarget::L => {self.registers.l = self.rl(self.registers.l);}
                     }
                 }
-                Instructions::RRC(target) =>
+                Instruction::RRC(target) =>
                 {
                     match target
                     {
@@ -456,7 +507,7 @@ impl CPU
                         ArithmeticTarget::L => {self.registers.l = self.rrc(self.registers.l);}
                     }
                 }
-                Instructions::RLC(target) =>
+                Instruction::RLC(target) =>
                 {
                     match target
                     {
@@ -469,7 +520,7 @@ impl CPU
                         ArithmeticTarget::L => {self.registers.l = self.rlc(self.registers.l);}
                     }
                 }
-                Instructions::SRA(target) =>
+                Instruction::SRA(target) =>
                 {
                     match target
                     {
@@ -482,7 +533,7 @@ impl CPU
                         ArithmeticTarget::L => {self.registers.l = self.sra(self.registers.l);}
                     }
                 }
-                Instructions::SLA(target) =>
+                Instruction::SLA(target) =>
                 {
                     match target
                     {
@@ -495,7 +546,7 @@ impl CPU
                         ArithmeticTarget::L => {self.registers.l = self.sla(self.registers.l);}
                     }
                 }
-                Instructions::SWAP(target) =>
+                Instruction::SWAP(target) =>
                 {
                     match target
                     {
