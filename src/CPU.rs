@@ -176,7 +176,8 @@ enum Instruction
     SRA(ArithmeticTarget),
     SLA(ArithmeticTarget),
     SWAP(ArithmeticTarget),
-    DAA()
+    DAA(),
+    JP()
 }
 enum ArithmeticTarget
 {
@@ -186,13 +187,25 @@ enum ArithmeticTarget16
 {
     HL, BC, DE, AF
 }
-
+enum JumpTest
+{
+    NotZero, Zero, NotCarry, Carry, Always
+}
 impl Instruction
 {
+    fn from_byte(byte: u8, prefixed: bool) -> Option<Instruction> {
+        if prefixed {
+          Instruction::from_byte_prefixed(byte)
+        } else {
+          Instruction::from_byte_not_prefixed(byte)
+        }
+      }
+    
     fn from_byte_not_prefixed(byte: u8) -> Option<Instruction>
         {
             match byte
                 {
+                    // 0x00 => Some(Instruction::()),
                     // 0x01 => Some(Instruction::()),
                     // 0x02 => Some(Instruction::()),
                     0x03 => Some(Instruction::INC16(ArithmeticTarget16::BC)),
@@ -231,7 +244,7 @@ impl Instruction
                     0x24 => Some(Instruction::INC8(ArithmeticTarget::H)),
                     0x25 => Some(Instruction::DEC8(ArithmeticTarget::H)),
                     // 0x26 => Some(Instruction::()),
-                    0x27 => Some(Instruction::DAA(ArithmeticTarget::A)),
+                    0x27 => Some(Instruction::DAA()),
                     // 0x28 => Some(Instruction::()),
                     0x29 => Some(Instruction::ADDHL(ArithmeticTarget16::HL)),
                     // 0x2A => Some(Instruction::()),
@@ -244,8 +257,8 @@ impl Instruction
                     // 0x31 => Some(Instruction::()),
                     // 0x32 => Some(Instruction::()),
                     // 0x33 => Some(Instruction::()),
-                    // 0x34 => Some(Instruction::()),
-                    // 0x35 => Some(Instruction::()),
+                    0x34 => Some(Instruction::INC8(ArithmeticTarget::HL)),
+                    0x35 => Some(Instruction::INC8(ArithmeticTarget::HL)),
                     // 0x36 => Some(Instruction::()),
                     0x37 => Some(Instruction::SCF()),
                     // 0x38 => Some(Instruction::()),
@@ -326,7 +339,7 @@ impl Instruction
                     0x83 => Some(Instruction::ADD(ArithmeticTarget::E)),
                     0x84 => Some(Instruction::ADD(ArithmeticTarget::H)),
                     0x85 => Some(Instruction::ADD(ArithmeticTarget::L)),
-                    // 0x86 => Some(Instruction::ADD(ArithmeticTarget::)),
+                    0x86 => Some(Instruction::ADD(ArithmeticTarget::HL)),
                     0x87 => Some(Instruction::ADD(ArithmeticTarget::A)),
                     0x88 => Some(Instruction::ADC(ArithmeticTarget::B)),
                     0x89 => Some(Instruction::ADC(ArithmeticTarget::C)),
@@ -334,7 +347,7 @@ impl Instruction
                     0x8B => Some(Instruction::ADC(ArithmeticTarget::E)),
                     0x8C => Some(Instruction::ADC(ArithmeticTarget::H)),
                     0x8D => Some(Instruction::ADC(ArithmeticTarget::L)),
-                    // 0x8E => Some(Instruction::()),
+                    0x8E => Some(Instruction::ADC(ArithmeticTarget::HL)),
                     0x8F => Some(Instruction::ADC(ArithmeticTarget::A)),
                     0x90 => Some(Instruction::SUB(ArithmeticTarget::B)),
                     0x91 => Some(Instruction::SUB(ArithmeticTarget::C)),
@@ -342,7 +355,7 @@ impl Instruction
                     0x93 => Some(Instruction::SUB(ArithmeticTarget::E)),
                     0x94 => Some(Instruction::SUB(ArithmeticTarget::H)),
                     0x95 => Some(Instruction::SUB(ArithmeticTarget::L)),
-                    // 0x96 => Some(Instruction::()),
+                    0x96 => Some(Instruction::SUB(ArithmeticTarget::HL)),
                     0x97 => Some(Instruction::SUB(ArithmeticTarget::A)),
                     0x98 => Some(Instruction::SBC(ArithmeticTarget::B)),
                     0x99 => Some(Instruction::SBC(ArithmeticTarget::C)),
@@ -350,7 +363,7 @@ impl Instruction
                     0x9B => Some(Instruction::SBC(ArithmeticTarget::E)),
                     0x9C => Some(Instruction::SBC(ArithmeticTarget::H)),
                     0x9D => Some(Instruction::SBC(ArithmeticTarget::L)),
-                    // 0x9E => Some(Instruction::()),
+                    0x9E => Some(Instruction::SBC(ArithmeticTarget::HL)),
                     0x9F => Some(Instruction::SBC(ArithmeticTarget::A)),
                     0xA0 => Some(Instruction::AND(ArithmeticTarget::B)),
                     0xA1 => Some(Instruction::AND(ArithmeticTarget::C)),
@@ -358,7 +371,7 @@ impl Instruction
                     0xA3 => Some(Instruction::AND(ArithmeticTarget::E)),
                     0xA4 => Some(Instruction::AND(ArithmeticTarget::H)),
                     0xA5 => Some(Instruction::AND(ArithmeticTarget::L)),
-                    // 0xA6 => Some(Instruction::()),
+                    0xA6 => Some(Instruction::AND(ArithmeticTarget::HL)),
                     0xA7 => Some(Instruction::AND(ArithmeticTarget::A)),
                     0xA8 => Some(Instruction::XOR(ArithmeticTarget::B)),
                     0xA9 => Some(Instruction::XOR(ArithmeticTarget::C)),
@@ -366,7 +379,7 @@ impl Instruction
                     0xAB => Some(Instruction::XOR(ArithmeticTarget::E)),
                     0xAC => Some(Instruction::XOR(ArithmeticTarget::H)),
                     0xAD => Some(Instruction::XOR(ArithmeticTarget::L)),
-                    // 0xAE => Some(Instruction::()),
+                    0xAE => Some(Instruction::XOR(ArithmeticTarget::HL)),
                     0xAF => Some(Instruction::XOR(ArithmeticTarget::A)),
                     0xB0 => Some(Instruction::OR(ArithmeticTarget::B)),
                     0xB1 => Some(Instruction::OR(ArithmeticTarget::C)),
@@ -374,7 +387,7 @@ impl Instruction
                     0xB3 => Some(Instruction::OR(ArithmeticTarget::E)),
                     0xB4 => Some(Instruction::OR(ArithmeticTarget::H)),
                     0xB5 => Some(Instruction::OR(ArithmeticTarget::L)),
-                    // 0xB6 => Some(Instruction::()),
+                    0xB6 => Some(Instruction::OR(ArithmeticTarget::HL)),
                     0xB7 => Some(Instruction::OR(ArithmeticTarget::A)),
                     0xB8 => Some(Instruction::CP(ArithmeticTarget::B)),
                     0xB9 => Some(Instruction::CP(ArithmeticTarget::C)),
@@ -382,7 +395,7 @@ impl Instruction
                     0xBB => Some(Instruction::CP(ArithmeticTarget::E)),
                     0xBC => Some(Instruction::CP(ArithmeticTarget::H)),
                     0xBD => Some(Instruction::CP(ArithmeticTarget::L)),
-                    // 0xBE => Some(Instruction::()),
+                    0xBE => Some(Instruction::CP(ArithmeticTarget::HL)),
                     0xBF => Some(Instruction::CP(ArithmeticTarget::A)),
                     // 0xC0 => Some(Instruction::()),
                     // 0xC1 => Some(Instruction::()),
@@ -720,19 +733,22 @@ impl CPU
     fn step(&mut self)
         {
             let mut instruction_byte = self.bus.read_byte(self.pc);
-
-            let next_pc = if let Some(instruction) = Instruction::from_byte(instruction_byte)
-                {
-                    self.execute(instruction)
-                }
-            else
-                {
-                    panic!("Unknown instruction found for 0x{:x}", instruction_byte);
-                };
+            let prefixed = instruction_byte == 0xCB;
+            if prefixed {
+              instruction_byte = self.bus.read_byte(self.pc + 1);
+            }
+        
+            let next_pc = if let Some(instruction) = Instruction::from_byte(instruction_byte, prefixed) {
+              self.execute(instruction)
+            } else {
+              let description = format!("0x{}{:x}", if prefixed { "cb" } else { "" }, instruction_byte);
+              panic!("Unkown instruction found for: {}", description)
+            };
+        
             self.pc = next_pc;
-        }
+          }
 
-    fn execute(&mut self, instruction: Instruction)
+    fn execute(&mut self, instruction: Instruction) -> u16
         {
             match instruction
             {
@@ -740,386 +756,397 @@ impl CPU
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.add(self.registers.a); self.pc = self.pc + 1;}
-                        ArithmeticTarget::B => {self.registers.a = self.add(self.registers.b); self.pc = self.pc + 1;}
-                        ArithmeticTarget::C => {self.registers.a = self.add(self.registers.c); self.pc = self.pc + 1;}
-                        ArithmeticTarget::D => {self.registers.a = self.add(self.registers.d); self.pc = self.pc + 1;}
-                        ArithmeticTarget::E => {self.registers.a = self.add(self.registers.e); self.pc = self.pc + 1;}
-                        ArithmeticTarget::H => {self.registers.a = self.add(self.registers.h); self.pc = self.pc + 1;}
-                        ArithmeticTarget::L => {self.registers.a = self.add(self.registers.l); self.pc = self.pc + 1;}
-                        ArithmeticTarget::HL => {self.registers.a = self.add(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 1;}
-                        ArithmeticTarget::U8 => {self.registers.a = self.add(self.bus.read_byte(self.pc + 1)); self.pc = self.pc + 2;}
+                        ArithmeticTarget::A => {self.registers.a = self.add(self.registers.a); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::B => {self.registers.a = self.add(self.registers.b); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::C => {self.registers.a = self.add(self.registers.c); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::D => {self.registers.a = self.add(self.registers.d); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::E => {self.registers.a = self.add(self.registers.e); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::H => {self.registers.a = self.add(self.registers.h); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::L => {self.registers.a = self.add(self.registers.l); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.registers.a = self.add(byte); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::U8 => {let byte = self.bus.read_byte(self.pc + 1); self.registers.a = self.add(byte); self.pc.wrapping_add(2)}
                     }
                 }
                 Instruction::ADDHL(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget16::AF => {let af = self.registers.get_af(); let result = self.addhl(af); self.registers.set_hl(result); self.pc = self.pc + 1;}
-                        ArithmeticTarget16::BC => {let bc = self.registers.get_bc(); let result = self.addhl(bc); self.registers.set_hl(result); self.pc = self.pc + 1;}
-                        ArithmeticTarget16::DE => {let de = self.registers.get_de(); let result = self.addhl(de); self.registers.set_hl(result); self.pc = self.pc + 1;}
-                        ArithmeticTarget16::HL => {let hl = self.registers.get_hl(); let result = self.addhl(hl); self.registers.set_hl(result); self.pc = self.pc + 1;}
+                        ArithmeticTarget16::AF => {let af = self.registers.get_af(); let result = self.addhl(af); self.registers.set_hl(result); self.pc.wrapping_add(1)}
+                        ArithmeticTarget16::BC => {let bc = self.registers.get_bc(); let result = self.addhl(bc); self.registers.set_hl(result); self.pc.wrapping_add(1)}
+                        ArithmeticTarget16::DE => {let de = self.registers.get_de(); let result = self.addhl(de); self.registers.set_hl(result); self.pc.wrapping_add(1)}
+                        ArithmeticTarget16::HL => {let hl = self.registers.get_hl(); let result = self.addhl(hl); self.registers.set_hl(result); self.pc.wrapping_add(1)}
                     }
                 }
                 Instruction::ADC(target) =>
                 {
                     match target 
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.adc(self.registers.a); self.pc = self.pc + 1;}
-                        ArithmeticTarget::B => {self.registers.a = self.adc(self.registers.b); self.pc = self.pc + 1;}
-                        ArithmeticTarget::C => {self.registers.a = self.adc(self.registers.c); self.pc = self.pc + 1;}
-                        ArithmeticTarget::D => {self.registers.a = self.adc(self.registers.d); self.pc = self.pc + 1;}
-                        ArithmeticTarget::E => {self.registers.a = self.adc(self.registers.e); self.pc = self.pc + 1;}
-                        ArithmeticTarget::H => {self.registers.a = self.adc(self.registers.h); self.pc = self.pc + 1;}
-                        ArithmeticTarget::L => {self.registers.a = self.adc(self.registers.l); self.pc = self.pc + 1;}
-                        ArithmeticTarget::HL => {self.registers.a = self.adc(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 1;}
-                        ArithmeticTarget::U8 => {self.registers.a = self.adc(self.bus.read_byte(self.pc + 1)); self.pc = self.pc + 2;}      
+                        ArithmeticTarget::A => {self.registers.a = self.adc(self.registers.a); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::B => {self.registers.a = self.adc(self.registers.b); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::C => {self.registers.a = self.adc(self.registers.c); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::D => {self.registers.a = self.adc(self.registers.d); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::E => {self.registers.a = self.adc(self.registers.e); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::H => {self.registers.a = self.adc(self.registers.h); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::L => {self.registers.a = self.adc(self.registers.l); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.registers.a = self.adc(byte); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::U8 => {let byte = self.bus.read_byte(self.pc + 1); self.registers.a = self.adc(byte); self.pc.wrapping_add(2)}      
                     }
                 }
                 Instruction::SUB(target) => 
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.sub(self.registers.a); self.pc = self.pc + 1;}
-                        ArithmeticTarget::B => {self.registers.a = self.sub(self.registers.b); self.pc = self.pc + 1;}
-                        ArithmeticTarget::C => {self.registers.a = self.sub(self.registers.c); self.pc = self.pc + 1;}
-                        ArithmeticTarget::D => {self.registers.a = self.sub(self.registers.d); self.pc = self.pc + 1;}
-                        ArithmeticTarget::E => {self.registers.a = self.sub(self.registers.e); self.pc = self.pc + 1;}
-                        ArithmeticTarget::H => {self.registers.a = self.sub(self.registers.h); self.pc = self.pc + 1;}
-                        ArithmeticTarget::L => {self.registers.a = self.sub(self.registers.l); self.pc = self.pc + 1;}
-                        ArithmeticTarget::HL => {self.registers.a = self.sub(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 1;}
-                        ArithmeticTarget::U8 => {self.registers.a = self.sub(self.bus.read_byte(self.pc + 1)); self.pc = self.pc + 2;}
+                        ArithmeticTarget::A => {self.registers.a = self.sub(self.registers.a); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::B => {self.registers.a = self.sub(self.registers.b); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::C => {self.registers.a = self.sub(self.registers.c); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::D => {self.registers.a = self.sub(self.registers.d); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::E => {self.registers.a = self.sub(self.registers.e); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::H => {self.registers.a = self.sub(self.registers.h); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::L => {self.registers.a = self.sub(self.registers.l); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.registers.a = self.sub(byte); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::U8 => {let byte = self.bus.read_byte(self.pc + 1); self.registers.a = self.sub(byte); self.pc.wrapping_add(2)}
                     }
                 }
                 Instruction::SBC(target) =>
                 {
                     match target 
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.sbc(self.registers.a); self.pc = self.pc + 1;}
-                        ArithmeticTarget::B => {self.registers.a = self.sbc(self.registers.b); self.pc = self.pc + 1;}
-                        ArithmeticTarget::C => {self.registers.a = self.sbc(self.registers.c); self.pc = self.pc + 1;}
-                        ArithmeticTarget::D => {self.registers.a = self.sbc(self.registers.d); self.pc = self.pc + 1;}
-                        ArithmeticTarget::E => {self.registers.a = self.sbc(self.registers.e); self.pc = self.pc + 1;}
-                        ArithmeticTarget::H => {self.registers.a = self.sbc(self.registers.h); self.pc = self.pc + 1;}
-                        ArithmeticTarget::L => {self.registers.a = self.sbc(self.registers.l); self.pc = self.pc + 1;}
-                        ArithmeticTarget::HL => {self.registers.a = self.sbc(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 1;}
-                        ArithmeticTarget::U8 => {self.registers.a = self.sbc(self.bus.read_byte(self.pc + 1)); self.pc = self.pc + 2;}    
+                        ArithmeticTarget::A => {self.registers.a = self.sbc(self.registers.a); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::B => {self.registers.a = self.sbc(self.registers.b); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::C => {self.registers.a = self.sbc(self.registers.c); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::D => {self.registers.a = self.sbc(self.registers.d); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::E => {self.registers.a = self.sbc(self.registers.e); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::H => {self.registers.a = self.sbc(self.registers.h); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::L => {self.registers.a = self.sbc(self.registers.l); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.registers.a = self.sbc(byte); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::U8 => {let byte = self.bus.read_byte(self.pc + 1); self.registers.a = self.sbc(byte); self.pc.wrapping_add(2)}    
                     }
                 }
                 Instruction::AND(target) =>
                 {
                     match target 
                     {
-                        ArithmeticTarget::A => {self.and(self.registers.a); self.pc = self.pc + 1;}
-                        ArithmeticTarget::B => {self.and(self.registers.b); self.pc = self.pc + 1;}
-                        ArithmeticTarget::C => {self.and(self.registers.c); self.pc = self.pc + 1;}
-                        ArithmeticTarget::D => {self.and(self.registers.d); self.pc = self.pc + 1;}
-                        ArithmeticTarget::E => {self.and(self.registers.e); self.pc = self.pc + 1;}
-                        ArithmeticTarget::H => {self.and(self.registers.h); self.pc = self.pc + 1;}
-                        ArithmeticTarget::L => {self.and(self.registers.l); self.pc = self.pc + 1;}  
-                        ArithmeticTarget::HL => {self.and(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 1;}
-                        ArithmeticTarget::U8 => {self.and(self.bus.read_byte(self.pc + 1)); self.pc = self.pc + 2;}    
+                        ArithmeticTarget::A => {self.and(self.registers.a); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::B => {self.and(self.registers.b); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::C => {self.and(self.registers.c); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::D => {self.and(self.registers.d); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::E => {self.and(self.registers.e); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::H => {self.and(self.registers.h); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::L => {self.and(self.registers.l); self.pc.wrapping_add(1)}  
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.and(byte); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::U8 => {let byte = self.bus.read_byte(self.pc + 1); self.and(byte); self.pc.wrapping_add(2)}    
                     }
                 } 
                 Instruction::OR(target) =>
                 {
                     match target 
                     {
-                        ArithmeticTarget::A => {self.or(self.registers.a); self.pc = self.pc + 1;}
-                        ArithmeticTarget::B => {self.or(self.registers.b); self.pc = self.pc + 1;}
-                        ArithmeticTarget::C => {self.or(self.registers.c); self.pc = self.pc + 1;}
-                        ArithmeticTarget::D => {self.or(self.registers.d); self.pc = self.pc + 1;}
-                        ArithmeticTarget::E => {self.or(self.registers.e); self.pc = self.pc + 1;}
-                        ArithmeticTarget::H => {self.or(self.registers.h); self.pc = self.pc + 1;}
-                        ArithmeticTarget::L => {self.or(self.registers.l); self.pc = self.pc + 1;}  
-                        ArithmeticTarget::HL => {self.or(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 1;}
-                        ArithmeticTarget::U8 => {self.or(self.bus.read_byte(self.pc + 1)); self.pc = self.pc + 2;}    
+                        ArithmeticTarget::A => {self.or(self.registers.a); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::B => {self.or(self.registers.b); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::C => {self.or(self.registers.c); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::D => {self.or(self.registers.d); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::E => {self.or(self.registers.e); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::H => {self.or(self.registers.h); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::L => {self.or(self.registers.l); self.pc.wrapping_add(1)}  
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.or(byte); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::U8 => {let byte = self.bus.read_byte(self.pc + 1); self.or(byte); self.pc.wrapping_add(2)}    
                     }
                 } 
                 Instruction::XOR(target) =>
                 {
                     match target 
                     {
-                        ArithmeticTarget::A => {self.xor(self.registers.a); self.pc = self.pc + 1;}
-                        ArithmeticTarget::B => {self.xor(self.registers.b); self.pc = self.pc + 1;}
-                        ArithmeticTarget::C => {self.xor(self.registers.c); self.pc = self.pc + 1;}
-                        ArithmeticTarget::D => {self.xor(self.registers.d); self.pc = self.pc + 1;}
-                        ArithmeticTarget::E => {self.xor(self.registers.e); self.pc = self.pc + 1;}
-                        ArithmeticTarget::H => {self.xor(self.registers.h); self.pc = self.pc + 1;}
-                        ArithmeticTarget::L => {self.xor(self.registers.l); self.pc = self.pc + 1;}  
-                        ArithmeticTarget::HL => {self.xor(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 1;}
-                        ArithmeticTarget::U8 => {self.xor(self.bus.read_byte(self.pc + 1)); self.pc = self.pc + 2;}    
+                        ArithmeticTarget::A => {self.xor(self.registers.a); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::B => {self.xor(self.registers.b); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::C => {self.xor(self.registers.c); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::D => {self.xor(self.registers.d); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::E => {self.xor(self.registers.e); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::H => {self.xor(self.registers.h); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::L => {self.xor(self.registers.l); self.pc.wrapping_add(1)}  
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.xor(byte); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::U8 => {let byte = self.bus.read_byte(self.pc + 1); self.xor(byte); self.pc.wrapping_add(2)}    
                     }
                 }
                 Instruction::CP(target) => 
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.cp(self.registers.a); self.pc = self.pc + 1;}
-                        ArithmeticTarget::B => {self.cp(self.registers.b); self.pc = self.pc + 1;}
-                        ArithmeticTarget::C => {self.cp(self.registers.c); self.pc = self.pc + 1;}
-                        ArithmeticTarget::D => {self.cp(self.registers.d); self.pc = self.pc + 1;}
-                        ArithmeticTarget::E => {self.cp(self.registers.e); self.pc = self.pc + 1;}
-                        ArithmeticTarget::H => {self.cp(self.registers.h); self.pc = self.pc + 1;}
-                        ArithmeticTarget::L => {self.cp(self.registers.l); self.pc = self.pc + 1;}
-                        ArithmeticTarget::HL => {self.cp(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 1;}
-                        ArithmeticTarget::U8 => {self.cp(self.bus.read_byte(self.pc + 1)); self.pc = self.pc + 2;}    
+                        ArithmeticTarget::A => {self.cp(self.registers.a); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::B => {self.cp(self.registers.b); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::C => {self.cp(self.registers.c); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::D => {self.cp(self.registers.d); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::E => {self.cp(self.registers.e); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::H => {self.cp(self.registers.h); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::L => {self.cp(self.registers.l); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.cp(byte); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::U8 => {let byte = self.bus.read_byte(self.pc + 1); self.cp(byte); self.pc.wrapping_add(2)}    
                     }
                 }
                 Instruction::INC8(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.inc_8(self.registers.a); self.pc = self.pc + 1;}
-                        ArithmeticTarget::B => {self.registers.b = self.inc_8(self.registers.b); self.pc = self.pc + 1;}
-                        ArithmeticTarget::C => {self.registers.c = self.inc_8(self.registers.c); self.pc = self.pc + 1;}
-                        ArithmeticTarget::D => {self.registers.d = self.inc_8(self.registers.d); self.pc = self.pc + 1;}
-                        ArithmeticTarget::E => {self.registers.e = self.inc_8(self.registers.e); self.pc = self.pc + 1;}
-                        ArithmeticTarget::H => {self.registers.h = self.inc_8(self.registers.h); self.pc = self.pc + 1;}
-                        ArithmeticTarget::L => {self.registers.l = self.inc_8(self.registers.l); self.pc = self.pc + 1;}
-                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.inc_8(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 1;}
-                        ArithmeticTarget::U8 => {}
+                        ArithmeticTarget::A => {self.registers.a = self.inc_8(self.registers.a); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::B => {self.registers.b = self.inc_8(self.registers.b); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::C => {self.registers.c = self.inc_8(self.registers.c); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::D => {self.registers.d = self.inc_8(self.registers.d); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::E => {self.registers.e = self.inc_8(self.registers.e); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::H => {self.registers.h = self.inc_8(self.registers.h); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::L => {self.registers.l = self.inc_8(self.registers.l); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.inc_8(byte); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::U8 => {self.pc}
                     }
                 }
                 Instruction::INC16(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget16::AF => {let af = self.registers.get_af(); let result = self.inc_16(af); self.registers.set_af(result); self.pc = self.pc + 1;}
-                        ArithmeticTarget16::BC => {let bc = self.registers.get_bc(); let result = self.inc_16(bc); self.registers.set_bc(result); self.pc = self.pc + 1;}
-                        ArithmeticTarget16::DE => {let de = self.registers.get_de(); let result = self.inc_16(de); self.registers.set_de(result); self.pc = self.pc + 1;}
-                        ArithmeticTarget16::HL => {let hl = self.registers.get_hl(); let result = self.inc_16(hl); self.registers.set_hl(result); self.pc = self.pc + 1;}
+                        ArithmeticTarget16::AF => {let af = self.registers.get_af(); let result = self.inc_16(af); self.registers.set_af(result); self.pc.wrapping_add(1)}
+                        ArithmeticTarget16::BC => {let bc = self.registers.get_bc(); let result = self.inc_16(bc); self.registers.set_bc(result); self.pc.wrapping_add(1)}
+                        ArithmeticTarget16::DE => {let de = self.registers.get_de(); let result = self.inc_16(de); self.registers.set_de(result); self.pc.wrapping_add(1)}
+                        ArithmeticTarget16::HL => {let hl = self.registers.get_hl(); let result = self.inc_16(hl); self.registers.set_hl(result); self.pc.wrapping_add(1)}
                     }
                 }
                 Instruction::DEC8(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.dec_8(self.registers.a); self.pc = self.pc + 1;}
-                        ArithmeticTarget::B => {self.registers.b = self.dec_8(self.registers.b); self.pc = self.pc + 1;}
-                        ArithmeticTarget::C => {self.registers.c = self.dec_8(self.registers.c); self.pc = self.pc + 1;}
-                        ArithmeticTarget::D => {self.registers.d = self.dec_8(self.registers.d); self.pc = self.pc + 1;}
-                        ArithmeticTarget::E => {self.registers.e = self.dec_8(self.registers.e); self.pc = self.pc + 1;}
-                        ArithmeticTarget::H => {self.registers.h = self.dec_8(self.registers.h); self.pc = self.pc + 1;}
-                        ArithmeticTarget::L => {self.registers.l = self.dec_8(self.registers.l); self.pc = self.pc + 1;}
-                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.dec_8(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 1;}
-                        ArithmeticTarget::U8 => {}
+                        ArithmeticTarget::A => {self.registers.a = self.dec_8(self.registers.a); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::B => {self.registers.b = self.dec_8(self.registers.b); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::C => {self.registers.c = self.dec_8(self.registers.c); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::D => {self.registers.d = self.dec_8(self.registers.d); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::E => {self.registers.e = self.dec_8(self.registers.e); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::H => {self.registers.h = self.dec_8(self.registers.h); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::L => {self.registers.l = self.dec_8(self.registers.l); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.dec_8(byte); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::U8 => {self.pc}
                     }
                 }
                 Instruction::DEC16(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget16::AF => {let af = self.registers.get_af(); let result = self.dec_16(af); self.registers.set_af(result); self.pc = self.pc + 1;}
-                        ArithmeticTarget16::BC => {let bc = self.registers.get_bc(); let result = self.dec_16(bc); self.registers.set_bc(result); self.pc = self.pc + 1;}
-                        ArithmeticTarget16::DE => {let de = self.registers.get_de(); let result = self.dec_16(de); self.registers.set_de(result); self.pc = self.pc + 1;}
-                        ArithmeticTarget16::HL => {let hl = self.registers.get_hl(); let result = self.dec_16(hl); self.registers.set_hl(result); self.pc = self.pc + 1;}
+                        ArithmeticTarget16::AF => {let af = self.registers.get_af(); let result = self.dec_16(af); self.registers.set_af(result); self.pc.wrapping_add(1)}
+                        ArithmeticTarget16::BC => {let bc = self.registers.get_bc(); let result = self.dec_16(bc); self.registers.set_bc(result); self.pc.wrapping_add(1)}
+                        ArithmeticTarget16::DE => {let de = self.registers.get_de(); let result = self.dec_16(de); self.registers.set_de(result); self.pc.wrapping_add(1)}
+                        ArithmeticTarget16::HL => {let hl = self.registers.get_hl(); let result = self.dec_16(hl); self.registers.set_hl(result); self.pc.wrapping_add(1)}
                     }
                 }
                 Instruction::CCF() =>
                 {
                     self.ccf();
-                    self.pc = self.pc + 1;
+                    self.pc.wrapping_add(1)
                 }
                 Instruction::SCF() =>
                 {
                     self.scf();
-                    self.pc = self.pc + 1;
+                    self.pc.wrapping_add(1)
                 }
                 Instruction::RRA() =>
                 {
                     self.rra();
-                    self.pc = self.pc + 1;
+                    self.pc.wrapping_add(1)
                 }
                 Instruction::RLA() =>
                 {
                     self.rla();
-                    self.pc = self.pc + 1;
+                    self.pc.wrapping_add(1)
                 }
                 Instruction::RRCA() =>
                 {
                     self.rrca();
-                    self.pc = self.pc + 1;
+                    self.pc.wrapping_add(1)
                 }
                 Instruction::RLCA() =>
                 {
                     self.rlca();
-                    self.pc = self.pc + 1;
+                    self.pc.wrapping_add(1)
                 }
                 Instruction::CPL() =>
                 {
                     self.cpl();
-                    self.pc = self.pc + 1;
+                    self.pc.wrapping_add(1)
                 }
                 Instruction::BIT(target, bit) =>
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.bit(bit, self.registers.a); self.pc = self.pc + 2;}
-                        ArithmeticTarget::B => {self.bit(bit, self.registers.b); self.pc = self.pc + 2;}
-                        ArithmeticTarget::C => {self.bit(bit, self.registers.c); self.pc = self.pc + 2;}
-                        ArithmeticTarget::D => {self.bit(bit, self.registers.d); self.pc = self.pc + 2;}
-                        ArithmeticTarget::E => {self.bit(bit, self.registers.e); self.pc = self.pc + 2;}
-                        ArithmeticTarget::H => {self.bit(bit, self.registers.h); self.pc = self.pc + 2;}
-                        ArithmeticTarget::L => {self.bit(bit, self.registers.l); self.pc = self.pc + 2;}
-                        ArithmeticTarget::HL => {self.bit(bit, self.registers.get_hl()); self.pc = self.pc + 2;}
-                        ArithmeticTarget::U8 => {}
+                        ArithmeticTarget::A => {self.bit(bit, self.registers.a); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::B => {self.bit(bit, self.registers.b); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::C => {self.bit(bit, self.registers.c); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::D => {self.bit(bit, self.registers.d); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::E => {self.bit(bit, self.registers.e); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::H => {self.bit(bit, self.registers.h); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::L => {self.bit(bit, self.registers.l); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bit(bit, byte); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::U8 => {self.pc}
                     }
                 }
                 Instruction::RES(target, bit) =>
                 {
                     match target 
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.res(bit, self.registers.a); self.pc = self.pc + 2;}
-                        ArithmeticTarget::B => {self.registers.b = self.res(bit, self.registers.b); self.pc = self.pc + 2;}
-                        ArithmeticTarget::C => {self.registers.c = self.res(bit, self.registers.c); self.pc = self.pc + 2;}
-                        ArithmeticTarget::D => {self.registers.d = self.res(bit, self.registers.d); self.pc = self.pc + 2;}
-                        ArithmeticTarget::E => {self.registers.e = self.res(bit, self.registers.e); self.pc = self.pc + 2;}
-                        ArithmeticTarget::H => {self.registers.h = self.res(bit, self.registers.h); self.pc = self.pc + 2;}
-                        ArithmeticTarget::L => {self.registers.l = self.res(bit, self.registers.l); self.pc = self.pc + 2;}
-                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.res(bit, self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 2;}
-                        ArithmeticTarget::U8 => {}    
+                        ArithmeticTarget::A => {self.registers.a = self.res(bit, self.registers.a); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::B => {self.registers.b = self.res(bit, self.registers.b); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::C => {self.registers.c = self.res(bit, self.registers.c); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::D => {self.registers.d = self.res(bit, self.registers.d); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::E => {self.registers.e = self.res(bit, self.registers.e); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::H => {self.registers.h = self.res(bit, self.registers.h); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::L => {self.registers.l = self.res(bit, self.registers.l); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.res(bit, byte); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::U8 => {self.pc}    
                     }
                 }
                 Instruction::SET(target, bit) =>
                 {
                     match target 
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.set(bit, self.registers.a); self.pc = self.pc + 2;}
-                        ArithmeticTarget::B => {self.registers.b = self.set(bit, self.registers.b); self.pc = self.pc + 2;}
-                        ArithmeticTarget::C => {self.registers.c = self.set(bit, self.registers.c); self.pc = self.pc + 2;}
-                        ArithmeticTarget::D => {self.registers.d = self.set(bit, self.registers.d); self.pc = self.pc + 2;}
-                        ArithmeticTarget::E => {self.registers.e = self.set(bit, self.registers.e); self.pc = self.pc + 2;}
-                        ArithmeticTarget::H => {self.registers.h = self.set(bit, self.registers.h); self.pc = self.pc + 2;}
-                        ArithmeticTarget::L => {self.registers.l = self.set(bit, self.registers.l); self.pc = self.pc + 2;}
-                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.set(bit, self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 2;}
-                        ArithmeticTarget::U8 => {}    
+                        ArithmeticTarget::A => {self.registers.a = self.set(bit, self.registers.a); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::B => {self.registers.b = self.set(bit, self.registers.b); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::C => {self.registers.c = self.set(bit, self.registers.c); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::D => {self.registers.d = self.set(bit, self.registers.d); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::E => {self.registers.e = self.set(bit, self.registers.e); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::H => {self.registers.h = self.set(bit, self.registers.h); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::L => {self.registers.l = self.set(bit, self.registers.l); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.set(bit, byte); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::U8 => {self.pc}    
                     }
                 }
                 Instruction::SRL(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.srl(self.registers.a); self.pc = self.pc + 2;}
-                        ArithmeticTarget::B => {self.registers.b = self.srl(self.registers.b); self.pc = self.pc + 2;}
-                        ArithmeticTarget::C => {self.registers.c = self.srl(self.registers.c); self.pc = self.pc + 2;}
-                        ArithmeticTarget::D => {self.registers.d = self.srl(self.registers.d); self.pc = self.pc + 2;}
-                        ArithmeticTarget::E => {self.registers.e = self.srl(self.registers.e); self.pc = self.pc + 2;}
-                        ArithmeticTarget::H => {self.registers.h = self.srl(self.registers.h); self.pc = self.pc + 2;}
-                        ArithmeticTarget::L => {self.registers.l = self.srl(self.registers.l); self.pc = self.pc + 2;}
-                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.srl(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 2;}
-                        ArithmeticTarget::U8 => {}
+                        ArithmeticTarget::A => {self.registers.a = self.srl(self.registers.a); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::B => {self.registers.b = self.srl(self.registers.b); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::C => {self.registers.c = self.srl(self.registers.c); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::D => {self.registers.d = self.srl(self.registers.d); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::E => {self.registers.e = self.srl(self.registers.e); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::H => {self.registers.h = self.srl(self.registers.h); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::L => {self.registers.l = self.srl(self.registers.l); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.srl(byte); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::U8 => {self.pc}
                     }
                 }
                 Instruction::RR(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.rr(self.registers.a); self.pc = self.pc + 2;}
-                        ArithmeticTarget::B => {self.registers.b = self.rr(self.registers.b); self.pc = self.pc + 2;}
-                        ArithmeticTarget::C => {self.registers.c = self.rr(self.registers.c); self.pc = self.pc + 2;}
-                        ArithmeticTarget::D => {self.registers.d = self.rr(self.registers.d); self.pc = self.pc + 2;}
-                        ArithmeticTarget::E => {self.registers.e = self.rr(self.registers.e); self.pc = self.pc + 2;}
-                        ArithmeticTarget::H => {self.registers.h = self.rr(self.registers.h); self.pc = self.pc + 2;}
-                        ArithmeticTarget::L => {self.registers.l = self.rr(self.registers.l); self.pc = self.pc + 2;}
-                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.rr(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 2;}
-                        ArithmeticTarget::U8 => {}
+                        ArithmeticTarget::A => {self.registers.a = self.rr(self.registers.a); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::B => {self.registers.b = self.rr(self.registers.b); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::C => {self.registers.c = self.rr(self.registers.c); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::D => {self.registers.d = self.rr(self.registers.d); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::E => {self.registers.e = self.rr(self.registers.e); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::H => {self.registers.h = self.rr(self.registers.h); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::L => {self.registers.l = self.rr(self.registers.l); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.rr(byte); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::U8 => {self.pc}
                     }
                 }
                 Instruction::RL(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.rl(self.registers.a); self.pc = self.pc + 2;}
-                        ArithmeticTarget::B => {self.registers.b = self.rl(self.registers.b); self.pc = self.pc + 2;}
-                        ArithmeticTarget::C => {self.registers.c = self.rl(self.registers.c); self.pc = self.pc + 2;}
-                        ArithmeticTarget::D => {self.registers.d = self.rl(self.registers.d); self.pc = self.pc + 2;}
-                        ArithmeticTarget::E => {self.registers.e = self.rl(self.registers.e); self.pc = self.pc + 2;}
-                        ArithmeticTarget::H => {self.registers.h = self.rl(self.registers.h); self.pc = self.pc + 2;}
-                        ArithmeticTarget::L => {self.registers.l = self.rl(self.registers.l); self.pc = self.pc + 2;}
-                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.rl(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 2;}
-                        ArithmeticTarget::U8 => {}
+                        ArithmeticTarget::A => {self.registers.a = self.rl(self.registers.a); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::B => {self.registers.b = self.rl(self.registers.b); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::C => {self.registers.c = self.rl(self.registers.c); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::D => {self.registers.d = self.rl(self.registers.d); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::E => {self.registers.e = self.rl(self.registers.e); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::H => {self.registers.h = self.rl(self.registers.h); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::L => {self.registers.l = self.rl(self.registers.l); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.rl(byte); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::U8 => {self.pc}
                     }
                 }
                 Instruction::RRC(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.rrc(self.registers.a); self.pc = self.pc + 2;}
-                        ArithmeticTarget::B => {self.registers.b = self.rrc(self.registers.b); self.pc = self.pc + 2;}
-                        ArithmeticTarget::C => {self.registers.c = self.rrc(self.registers.c); self.pc = self.pc + 2;}
-                        ArithmeticTarget::D => {self.registers.d = self.rrc(self.registers.d); self.pc = self.pc + 2;}
-                        ArithmeticTarget::E => {self.registers.e = self.rrc(self.registers.e); self.pc = self.pc + 2;}
-                        ArithmeticTarget::H => {self.registers.h = self.rrc(self.registers.h); self.pc = self.pc + 2;}
-                        ArithmeticTarget::L => {self.registers.l = self.rrc(self.registers.l); self.pc = self.pc + 2;}
-                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.rrc(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 2;}
-                        ArithmeticTarget::U8 => {}
+                        ArithmeticTarget::A => {self.registers.a = self.rrc(self.registers.a); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::B => {self.registers.b = self.rrc(self.registers.b); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::C => {self.registers.c = self.rrc(self.registers.c); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::D => {self.registers.d = self.rrc(self.registers.d); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::E => {self.registers.e = self.rrc(self.registers.e); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::H => {self.registers.h = self.rrc(self.registers.h); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::L => {self.registers.l = self.rrc(self.registers.l); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.rrc(byte); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::U8 => {self.pc}
                     }
                 }
                 Instruction::RLC(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.rlc(self.registers.a); self.pc = self.pc + 2;}
-                        ArithmeticTarget::B => {self.registers.b = self.rlc(self.registers.b); self.pc = self.pc + 2;}
-                        ArithmeticTarget::C => {self.registers.c = self.rlc(self.registers.c); self.pc = self.pc + 2;}
-                        ArithmeticTarget::D => {self.registers.d = self.rlc(self.registers.d); self.pc = self.pc + 2;}
-                        ArithmeticTarget::E => {self.registers.e = self.rlc(self.registers.e); self.pc = self.pc + 2;}
-                        ArithmeticTarget::H => {self.registers.h = self.rlc(self.registers.h); self.pc = self.pc + 2;}
-                        ArithmeticTarget::L => {self.registers.l = self.rlc(self.registers.l); self.pc = self.pc + 2;}
-                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.rlc(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 2;}
-                        ArithmeticTarget::U8 => {}
+                        ArithmeticTarget::A => {self.registers.a = self.rlc(self.registers.a); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::B => {self.registers.b = self.rlc(self.registers.b); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::C => {self.registers.c = self.rlc(self.registers.c); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::D => {self.registers.d = self.rlc(self.registers.d); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::E => {self.registers.e = self.rlc(self.registers.e); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::H => {self.registers.h = self.rlc(self.registers.h); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::L => {self.registers.l = self.rlc(self.registers.l); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.rlc(byte); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::U8 => {self.pc}
                     }
                 }
                 Instruction::SRA(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.sra(self.registers.a); self.pc = self.pc + 2;}
-                        ArithmeticTarget::B => {self.registers.b = self.sra(self.registers.b); self.pc = self.pc + 2;}
-                        ArithmeticTarget::C => {self.registers.c = self.sra(self.registers.c); self.pc = self.pc + 2;}
-                        ArithmeticTarget::D => {self.registers.d = self.sra(self.registers.d); self.pc = self.pc + 2;}
-                        ArithmeticTarget::E => {self.registers.e = self.sra(self.registers.e); self.pc = self.pc + 2;}
-                        ArithmeticTarget::H => {self.registers.h = self.sra(self.registers.h); self.pc = self.pc + 2;}
-                        ArithmeticTarget::L => {self.registers.l = self.sra(self.registers.l); self.pc = self.pc + 2;}
-                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.sra(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 2;}
-                        ArithmeticTarget::U8 => {}
+                        ArithmeticTarget::A => {self.registers.a = self.sra(self.registers.a); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::B => {self.registers.b = self.sra(self.registers.b); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::C => {self.registers.c = self.sra(self.registers.c); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::D => {self.registers.d = self.sra(self.registers.d); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::E => {self.registers.e = self.sra(self.registers.e); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::H => {self.registers.h = self.sra(self.registers.h); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::L => {self.registers.l = self.sra(self.registers.l); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.sra(byte); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::U8 => {self.pc}
                     }
                 }
                 Instruction::SLA(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.sla(self.registers.a); self.pc = self.pc + 2;}
-                        ArithmeticTarget::B => {self.registers.b = self.sla(self.registers.b); self.pc = self.pc + 2;}
-                        ArithmeticTarget::C => {self.registers.c = self.sla(self.registers.c); self.pc = self.pc + 2;}
-                        ArithmeticTarget::D => {self.registers.d = self.sla(self.registers.d); self.pc = self.pc + 2;}
-                        ArithmeticTarget::E => {self.registers.e = self.sla(self.registers.e); self.pc = self.pc + 2;}
-                        ArithmeticTarget::H => {self.registers.h = self.sla(self.registers.h); self.pc = self.pc + 2;}
-                        ArithmeticTarget::L => {self.registers.l = self.sla(self.registers.l); self.pc = self.pc + 2;}
-                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.sla(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 2;}
-                        ArithmeticTarget::U8 => {}
+                        ArithmeticTarget::A => {self.registers.a = self.sla(self.registers.a); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::B => {self.registers.b = self.sla(self.registers.b); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::C => {self.registers.c = self.sla(self.registers.c); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::D => {self.registers.d = self.sla(self.registers.d); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::E => {self.registers.e = self.sla(self.registers.e); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::H => {self.registers.h = self.sla(self.registers.h); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::L => {self.registers.l = self.sla(self.registers.l); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.sla(byte); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::U8 => {self.pc}
                     }
                 }
                 Instruction::SWAP(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.swap(self.registers.a); self.pc = self.pc + 2;}
-                        ArithmeticTarget::B => {self.registers.b = self.swap(self.registers.b); self.pc = self.pc + 2;}
-                        ArithmeticTarget::C => {self.registers.c = self.swap(self.registers.c); self.pc = self.pc + 2;}
-                        ArithmeticTarget::D => {self.registers.d = self.swap(self.registers.d); self.pc = self.pc + 2;}
-                        ArithmeticTarget::E => {self.registers.e = self.swap(self.registers.e); self.pc = self.pc + 2;}
-                        ArithmeticTarget::H => {self.registers.h = self.swap(self.registers.h); self.pc = self.pc + 2;}
-                        ArithmeticTarget::L => {self.registers.l = self.swap(self.registers.l); self.pc = self.pc + 2;}
-                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.swap(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 2;}
-                        ArithmeticTarget::U8 => {}
+                        ArithmeticTarget::A => {self.registers.a = self.swap(self.registers.a); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::B => {self.registers.b = self.swap(self.registers.b); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::C => {self.registers.c = self.swap(self.registers.c); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::D => {self.registers.d = self.swap(self.registers.d); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::E => {self.registers.e = self.swap(self.registers.e); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::H => {self.registers.h = self.swap(self.registers.h); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::L => {self.registers.l = self.swap(self.registers.l); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.swap(byte); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::U8 => {self.pc}
                     }
                 }
                 Instruction::DAA() =>
                 {
                     self.daa();
+                    self.pc.wrapping_add(1)
                 }
+                Instruction::JP(test) => {
+                    let jump_condition = match test {
+                        JumpTest::NotZero => !self.registers.f.zero,
+                        JumpTest::NotCarry => !self.registers.f.carry,
+                        JumpTest::Zero => self.registers.f.zero,
+                        JumpTest::Carry => self.registers.f.carry,
+                        JumpTest::Always => true
+                    };
+                    self.jump(jump_condition)
+                  }
             }
         }
     fn add(&mut self, value: u8) -> u8
@@ -1395,7 +1422,7 @@ impl CPU
                 correction |= 0x06;
             }
     
-            if self.registers.f.carry || (self.a > 0x99) {
+            if self.registers.f.carry || (self.registers.a > 0x99) {
                 correction |= 0x60;
                 self.registers.f.carry = true;
             } else {
@@ -1409,6 +1436,20 @@ impl CPU
             }
     
             self.registers.f.half_carry = false;
-            self.registers.f.zero = self.a == 0;
+            self.registers.f.zero = self.registers.a == 0;
         }
+    fn jump(&self, should_jump: bool) -> u16 {
+        if should_jump {
+          // Gameboy is little endian so read pc + 2 as most significant bit
+          // and pc + 1 as least significant bit
+          let least_significant_byte = self.bus.read_byte(self.pc + 1) as u16;
+          let most_significant_byte = self.bus.read_byte(self.pc + 2) as u16;
+          (most_significant_byte << 8) | least_significant_byte
+        } else {
+          // If we don't jump we need to still move the program
+          // counter forward by 3 since the jump instruction is
+          // 3 bytes wide (1 byte for tag and 2 bytes for jump address)
+          self.pc.wrapping_add(3)
+        }
+      }
 }
