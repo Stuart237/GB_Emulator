@@ -141,6 +141,27 @@ impl MemoryBus
     {
         self.memory[address as usize]
     }
+
+    fn read_word(&mut self, address: u16) -> u16
+    {
+        let lo = self.read_byte(address) as u16;
+        let hi = (self.read_byte(address + 1) << 8) as u16;
+        let word = lo | hi;
+        word
+    }
+
+    fn write_byte(&mut self, address: u16, value: u8)
+    {
+        self.memory[address as usize] = value;
+    }
+
+    fn write_word(&mut self, address: u16, value: u16)
+    {
+        let lo = (value & 0x00FF) as u8;
+        let hi = ((value & 0xFF00) >> 8) as u8;
+        self.memory[address as usize] = lo;
+        self.memory[(address + 1) as usize] = hi;
+    }
 }
 
 enum Instruction
@@ -177,7 +198,8 @@ enum Instruction
     SLA(ArithmeticTarget),
     SWAP(ArithmeticTarget),
     DAA(),
-    JP()
+    JP(JumpTest),
+    LD(LoadType)
 }
 enum ArithmeticTarget
 {
@@ -186,6 +208,39 @@ enum ArithmeticTarget
 enum ArithmeticTarget16
 {
     HL, BC, DE, AF
+}
+enum LoadByteTarget 
+{
+    A, B, C, D, E, H, L, HLI
+}
+enum LoadByteSource 
+{
+    A, B, C, D, E, H, L, D8, HLI
+}
+enum LoadByteIndirect
+{
+    BC, DE, HLP, HLN
+}
+enum LoadType 
+{
+  Byte(LoadByteTarget, LoadByteSource),
+  Word(LoadWordTarget, LoadWordSource),
+  AFromIndirect(LoadByteIndirect),
+  IndirectFromA(LoadByteIndirect),
+  AFromByteAddress(LoadByteAddress),
+  ByteAddressFromA(LoadByteAddress)
+}
+enum LoadWordTarget
+{
+    AF, HL, DE, BC, HLI
+}
+enum LoadWordSource
+{
+    AF, BC, DE, HL, D16, HLI
+}
+enum LoadByteAddress
+{
+    U8, C
 }
 enum JumpTest
 {
@@ -206,36 +261,36 @@ impl Instruction
             match byte
                 {
                     // 0x00 => Some(Instruction::()),
-                    // 0x01 => Some(Instruction::()),
-                    // 0x02 => Some(Instruction::()),
+                    0x01 => Some(Instruction::LD(LoadType::Word(LoadWordTarget::BC, LoadWordSource::D16))),
+                    0x02 => Some(Instruction::LD(LoadType::IndirectFromA(LoadByteIndirect::BC))),
                     0x03 => Some(Instruction::INC16(ArithmeticTarget16::BC)),
                     0x04 => Some(Instruction::INC8(ArithmeticTarget::B)),
                     0x05 => Some(Instruction::DEC8(ArithmeticTarget::B)),
-                    // 0x06 => Some(Instruction::()),
+                    0x06 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::B, LoadByteSource::D8))),
                     0x07 => Some(Instruction::RLCA()),
                     // 0x08 => Some(Instruction::()),
                     0x09 => Some(Instruction::ADDHL(ArithmeticTarget16::BC)),
-                    // 0x0A => Some(Instruction::()),
+                    0x0A => Some(Instruction::LD(LoadType::AFromIndirect(LoadByteIndirect::BC))),
                     0x0B => Some(Instruction::DEC16(ArithmeticTarget16::BC)),
                     0x0C => Some(Instruction::INC8(ArithmeticTarget::C)),
                     0x0D => Some(Instruction::DEC8(ArithmeticTarget::C)),
-                    // 0x0E => Some(Instruction::()),
+                    0x0E => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::C, LoadByteSource::D8))),
                     0x0F => Some(Instruction::RRCA()),
                     // 0x10 => Some(Instruction::()),
-                    // 0x11 => Some(Instruction::()),
-                    // 0x12 => Some(Instruction::()),
+                    0x11 => Some(Instruction::LD(LoadType::Word(LoadWordTarget::DE, LoadWordSource::D16))),
+                    0x12 => Some(Instruction::LD(LoadType::IndirectFromA(LoadByteIndirect::DE))),
                     0x13 => Some(Instruction::INC16(ArithmeticTarget16::DE)),
                     0x14 => Some(Instruction::INC8(ArithmeticTarget::D)),
                     0x15 => Some(Instruction::DEC8(ArithmeticTarget::D)),
-                    // 0x16 => Some(Instruction::()),
+                    0x16 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::D, LoadByteSource::D8))),
                     0x17 => Some(Instruction::RLA()),
-                    // 0x18 => Some(Instruction::()),
+                    //0x18 => Some(Instruction::()),
                     0x19 => Some(Instruction::ADDHL(ArithmeticTarget16::DE)),
-                    // 0x1A => Some(Instruction::()),
+                    0x1A => Some(Instruction::LD(LoadType::AFromIndirect(LoadByteIndirect::DE))),
                     0x1B => Some(Instruction::DEC16(ArithmeticTarget16::DE)),
                     0x1C => Some(Instruction::INC8(ArithmeticTarget::E)),
                     0x1D => Some(Instruction::DEC8(ArithmeticTarget::E)),
-                    // 0x1E => Some(Instruction::()),
+                    0x1E => Some(Instruction::()),
                     0x1F => Some(Instruction::RRA()),
                     // 0x20 => Some(Instruction::()),
                     // 0x21 => Some(Instruction::()),
@@ -730,6 +785,17 @@ impl Instruction
 
 impl CPU
 {
+    fn read_next_byte(&mut self) -> u8
+        {
+            self.bus.memory[(self.pc + 1) as usize]
+        }
+    fn read_next_word(&mut self) -> u16
+        {
+            let lo = self.bus.read_byte(self.pc + 1) as u16;
+            let hi = (self.bus.read_byte(self.pc + 2) << 8) as u16;
+            let word = lo | hi;
+            word
+        }
     fn step(&mut self)
         {
             let mut instruction_byte = self.bus.read_byte(self.pc);
@@ -1137,8 +1203,10 @@ impl CPU
                     self.daa();
                     self.pc.wrapping_add(1)
                 }
-                Instruction::JP(test) => {
-                    let jump_condition = match test {
+                Instruction::JP(test) => 
+                {
+                    let jump_condition = match test 
+                    {
                         JumpTest::NotZero => !self.registers.f.zero,
                         JumpTest::NotCarry => !self.registers.f.carry,
                         JumpTest::Zero => self.registers.f.zero,
@@ -1146,7 +1214,117 @@ impl CPU
                         JumpTest::Always => true
                     };
                     self.jump(jump_condition)
-                  }
+                }
+                Instruction::LD(load_type) => 
+                {
+                    match load_type 
+                    {
+                        LoadType::Byte(target, source) => 
+                            {
+                                let source_value = match source 
+                                {
+                                    LoadByteSource::A => self.registers.a,
+                                    LoadByteSource::B => self.registers.b,
+                                    LoadByteSource::C => self.registers.c,
+                                    LoadByteSource::D => self.registers.d,
+                                    LoadByteSource::E => self.registers.e,
+                                    LoadByteSource::H => self.registers.h,
+                                    LoadByteSource::L => self.registers.l,
+                                    LoadByteSource::D8 => self.read_next_byte(),
+                                    LoadByteSource::HLI => self.bus.read_byte(self.registers.get_hl())
+                                };
+                                match target 
+                                {
+                                    LoadByteTarget::A => self.registers.a = source_value,
+                                    LoadByteTarget::B => self.registers.b = source_value,
+                                    LoadByteTarget::C => self.registers.c = source_value,
+                                    LoadByteTarget::D => self.registers.d = source_value,
+                                    LoadByteTarget::E => self.registers.e = source_value,
+                                    LoadByteTarget::H => self.registers.h = source_value,
+                                    LoadByteTarget::L => self.registers.l = source_value,
+                                    LoadByteTarget::HLI => self.bus.write_byte(self.registers.get_hl(), source_value),
+                                };
+                                match source 
+                                {
+                                    LoadByteSource::D8  => self.pc.wrapping_add(2),
+                                    _                   => self.pc.wrapping_add(1),
+                                }
+                            }
+                        LoadType::Word(target, source) =>
+                            {
+                                let source_value = match source
+                                {
+                                    LoadWordSource::AF => self.registers.get_af(),
+                                    LoadWordSource::BC => self.registers.get_bc(),
+                                    LoadWordSource::DE => self.registers.get_de(),
+                                    LoadWordSource::HL => self.registers.get_hl(),
+                                    LoadWordSource::D16 => self.read_next_word(),
+                                    LoadWordSource::HLI => self.bus.read_word(self.registers.get_hl())
+                                };
+                                match target
+                                {
+                                    LoadWordTarget::AF => self.registers.set_af(source_value),
+                                    LoadWordTarget::BC => self.registers.set_bc(source_value),
+                                    LoadWordTarget::DE => self.registers.set_de(source_value),
+                                    LoadWordTarget::HL => self.registers.set_hl(source_value),
+                                    LoadWordTarget::HLI => self.bus.write_word(self.registers.get_hl(), source_value)
+                                };
+                                match source
+                                {
+                                    LoadWordSource::D16 => self.pc.wrapping_add(3),
+                                    _                   => self.pc.wrapping_add(2),
+                                }
+                            }
+                        LoadType::AFromIndirect(source) =>
+                            {
+                                match source
+                                {
+                                    LoadByteIndirect::BC => {self.registers.a = self.bus.read_byte(self.registers.get_bc());},
+                                    LoadByteIndirect::DE => {self.registers.a = self.bus.read_byte(self.registers.get_de());},
+                                    LoadByteIndirect::HLP => {self.registers.a = self.bus.read_byte(self.registers.get_hl()); let hl_add = self.registers.get_hl().wrapping_add(1); self.registers.set_hl(hl_add);},
+                                    LoadByteIndirect::HLN => {self.registers.a = self.bus.read_byte(self.registers.get_hl()); let hl_add = self.registers.get_hl().wrapping_sub(1); self.registers.set_hl(hl_add);},
+                                }
+                                self.pc.wrapping_add(1)
+                            }
+                        LoadType::IndirectFromA(target) =>
+                            {
+                                match target
+                                {
+                                    LoadByteIndirect::BC => self.bus.write_byte(self.registers.get_bc(), self.registers.a),
+                                    LoadByteIndirect::DE => self.bus.write_byte(self.registers.get_de(), self.registers.a),
+                                    LoadByteIndirect::HLP => {self.bus.write_byte(self.registers.get_hl(), self.registers.a); let hl_add = self.registers.get_hl().wrapping_add(1); self.registers.set_hl(hl_add)},
+                                    LoadByteIndirect::HLN => {self.bus.write_byte(self.registers.get_hl(), self.registers.a); let hl_add = self.registers.get_hl().wrapping_sub(1); self.registers.set_hl(hl_add)},
+                                }
+                                self.pc.wrapping_add(1)
+                            }
+                        LoadType::AFromByteAddress(source) =>
+                            {
+                                match source
+                                {
+                                    LoadByteAddress::C => self.registers.a = self.bus.read_byte(0xFF00 | (self.registers.c as u16)),
+                                    LoadByteAddress::U8 => {let byte = self.bus.read_byte(self.pc + 1); self.registers.a = self.bus.read_byte(0xFF00 | byte as u16);}
+                                }
+                                match source
+                                {
+                                    LoadByteAddress::C => self.pc + 1,
+                                    _                  => self.pc + 2
+                                }
+                            }
+                        LoadType::ByteAddressFromA(target) =>
+                            {
+                                match target
+                                {
+                                    LoadByteAddress::C => self.bus.write_byte((0xFF00 | self.registers.c as u16), self.registers.a),
+                                    LoadByteAddress::U8 => {let byte = self.bus.read_byte(self.pc + 1); self.bus.write_byte((0xFF00 | byte as u16), self.registers.a);}
+                                }
+                                match target
+                                {
+                                    LoadByteAddress::C => self.pc + 1,
+                                    _                  => self.pc + 2
+                                }
+                            }
+                    }
+                }
             }
         }
     fn add(&mut self, value: u8) -> u8
@@ -1438,7 +1616,7 @@ impl CPU
             self.registers.f.half_carry = false;
             self.registers.f.zero = self.registers.a == 0;
         }
-    fn jump(&self, should_jump: bool) -> u16 {
+    fn jump(&mut self, should_jump: bool) -> u16 {
         if should_jump {
           // Gameboy is little endian so read pc + 2 as most significant bit
           // and pc + 1 as least significant bit
