@@ -175,11 +175,12 @@ enum Instruction
     RLC(ArithmeticTarget),
     SRA(ArithmeticTarget),
     SLA(ArithmeticTarget),
-    SWAP(ArithmeticTarget)
+    SWAP(ArithmeticTarget),
+    DAA()
 }
 enum ArithmeticTarget
 {
-    A, B, C, D, E, H, L
+    A, B, C, D, E, H, L, HL, U8
 }
 enum ArithmeticTarget16
 {
@@ -454,262 +455,262 @@ impl Instruction
         {
             match byte
                 {
-                    0x00 => Some(Instruction::()),
-                    0x01 => Some(Instruction::()),
-                    0x02 => Some(Instruction::()),
-                    0x03 => Some(Instruction::()),
-                    0x04 => Some(Instruction::()),
-                    0x05 => Some(Instruction::()),
-                    0x06 => Some(Instruction::()),
-                    0x07 => Some(Instruction::()),
-                    0x08 => Some(Instruction::()),
-                    0x09 => Some(Instruction::()),
-                    0x0A => Some(Instruction::()),
-                    0x0B => Some(Instruction::()),
-                    0x0C => Some(Instruction::()),
-                    0x0D => Some(Instruction::()),
-                    0x0E => Some(Instruction::()),
-                    0x0F => Some(Instruction::()),
-                    0x10 => Some(Instruction::()),
-                    0x11 => Some(Instruction::()),
-                    0x12 => Some(Instruction::()),
-                    0x13 => Some(Instruction::()),
-                    0x14 => Some(Instruction::()),
-                    0x15 => Some(Instruction::()),
-                    0x16 => Some(Instruction::()),
-                    0x17 => Some(Instruction::()),
-                    0x18 => Some(Instruction::()),
-                    0x19 => Some(Instruction::()),
-                    0x1A => Some(Instruction::()),
-                    0x1B => Some(Instruction::()),
-                    0x1C => Some(Instruction::()),
-                    0x1D => Some(Instruction::()),
-                    0x1E => Some(Instruction::()),
-                    0x1F => Some(Instruction::()),
-                    0x20 => Some(Instruction::()),
-                    0x21 => Some(Instruction::()),
-                    0x22 => Some(Instruction::()),
-                    0x23 => Some(Instruction::()),
-                    0x24 => Some(Instruction::()),
-                    0x25 => Some(Instruction::()),
-                    0x26 => Some(Instruction::()),
-                    0x27 => Some(Instruction::()),
-                    0x28 => Some(Instruction::()),
-                    0x29 => Some(Instruction::()),
-                    0x2A => Some(Instruction::()),
-                    0x2B => Some(Instruction::()),
-                    0x2C => Some(Instruction::()),
-                    0x2D => Some(Instruction::()),
-                    0x2E => Some(Instruction::()),
-                    0x2F => Some(Instruction::()),
-                    0x30 => Some(Instruction::()),
-                    0x31 => Some(Instruction::()),
-                    0x32 => Some(Instruction::()),
-                    0x33 => Some(Instruction::()),
-                    0x34 => Some(Instruction::()),
-                    0x35 => Some(Instruction::()),
-                    0x36 => Some(Instruction::()),
-                    0x37 => Some(Instruction::()),
-                    0x38 => Some(Instruction::()),
-                    0x39 => Some(Instruction::()),
-                    0x3A => Some(Instruction::()),
-                    0x3B => Some(Instruction::()),
-                    0x3C => Some(Instruction::()),
-                    0x3D => Some(Instruction::()),
-                    0x3E => Some(Instruction::()),
-                    0x3F => Some(Instruction::()),
-                    0x40 => Some(Instruction::()),
-                    0x41 => Some(Instruction::()),
-                    0x42 => Some(Instruction::()),
-                    0x43 => Some(Instruction::()),
-                    0x44 => Some(Instruction::()),
-                    0x45 => Some(Instruction::()),
-                    0x46 => Some(Instruction::()),
-                    0x47 => Some(Instruction::()),
-                    0x48 => Some(Instruction::()),
-                    0x49 => Some(Instruction::()),
-                    0x4A => Some(Instruction::()),
-                    0x4B => Some(Instruction::()),
-                    0x4C => Some(Instruction::()),
-                    0x4D => Some(Instruction::()),
-                    0x4E => Some(Instruction::()),
-                    0x4F => Some(Instruction::()),
-                    0x50 => Some(Instruction::()),
-                    0x51 => Some(Instruction::()),
-                    0x52 => Some(Instruction::()),
-                    0x53 => Some(Instruction::()),
-                    0x54 => Some(Instruction::()),
-                    0x55 => Some(Instruction::()),
-                    0x56 => Some(Instruction::()),
-                    0x57 => Some(Instruction::()),
-                    0x58 => Some(Instruction::()),
-                    0x59 => Some(Instruction::()),
-                    0x5A => Some(Instruction::()),
-                    0x5B => Some(Instruction::()),
-                    0x5C => Some(Instruction::()),
-                    0x5D => Some(Instruction::()),
-                    0x5E => Some(Instruction::()),
-                    0x5F => Some(Instruction::()),
-                    0x60 => Some(Instruction::()),
-                    0x61 => Some(Instruction::()),
-                    0x62 => Some(Instruction::()),
-                    0x63 => Some(Instruction::()),
-                    0x64 => Some(Instruction::()),
-                    0x65 => Some(Instruction::()),
-                    0x66 => Some(Instruction::()),
-                    0x67 => Some(Instruction::()),
-                    0x68 => Some(Instruction::()),
-                    0x69 => Some(Instruction::()),
-                    0x6A => Some(Instruction::()),
-                    0x6B => Some(Instruction::()),
-                    0x6C => Some(Instruction::()),
-                    0x6D => Some(Instruction::()),
-                    0x6E => Some(Instruction::()),
-                    0x6F => Some(Instruction::()),
-                    0x70 => Some(Instruction::()),
-                    0x71 => Some(Instruction::()),
-                    0x72 => Some(Instruction::()),
-                    0x73 => Some(Instruction::()),
-                    0x74 => Some(Instruction::()),
-                    0x75 => Some(Instruction::()),
-                    0x76 => Some(Instruction::()),
-                    0x77 => Some(Instruction::()),
-                    0x78 => Some(Instruction::()),
-                    0x79 => Some(Instruction::()),
-                    0x7A => Some(Instruction::()),
-                    0x7B => Some(Instruction::()),
-                    0x7C => Some(Instruction::()),
-                    0x7D => Some(Instruction::()),
-                    0x7E => Some(Instruction::()),
-                    0x7F => Some(Instruction::()),
-                    0x80 => Some(Instruction::()),
-                    0x81 => Some(Instruction::()),
-                    0x82 => Some(Instruction::()),
-                    0x83 => Some(Instruction::()),
-                    0x84 => Some(Instruction::()),
-                    0x85 => Some(Instruction::()),
-                    0x86 => Some(Instruction::()),
-                    0x87 => Some(Instruction::()),
-                    0x88 => Some(Instruction::()),
-                    0x89 => Some(Instruction::()),
-                    0x8A => Some(Instruction::()),
-                    0x8B => Some(Instruction::()),
-                    0x8C => Some(Instruction::()),
-                    0x8D => Some(Instruction::()),
-                    0x8E => Some(Instruction::()),
-                    0x8F => Some(Instruction::()),
-                    0x90 => Some(Instruction::()),
-                    0x91 => Some(Instruction::()),
-                    0x92 => Some(Instruction::()),
-                    0x93 => Some(Instruction::()),
-                    0x94 => Some(Instruction::()),
-                    0x95 => Some(Instruction::()),
-                    0x96 => Some(Instruction::()),
-                    0x97 => Some(Instruction::()),
-                    0x98 => Some(Instruction::()),
-                    0x99 => Some(Instruction::()),
-                    0x9A => Some(Instruction::()),
-                    0x9B => Some(Instruction::()),
-                    0x9C => Some(Instruction::()),
-                    0x9D => Some(Instruction::()),
-                    0x9E => Some(Instruction::()),
-                    0x9F => Some(Instruction::()),
-                    0xA0 => Some(Instruction::()),
-                    0xA1 => Some(Instruction::()),
-                    0xA2 => Some(Instruction::()),
-                    0xA3 => Some(Instruction::()),
-                    0xA4 => Some(Instruction::()),
-                    0xA5 => Some(Instruction::()),
-                    0xA6 => Some(Instruction::()),
-                    0xA7 => Some(Instruction::()),
-                    0xA8 => Some(Instruction::()),
-                    0xA9 => Some(Instruction::()),
-                    0xAA => Some(Instruction::()),
-                    0xAB => Some(Instruction::()),
-                    0xAC => Some(Instruction::()),
-                    0xAD => Some(Instruction::()),
-                    0xAE => Some(Instruction::()),
-                    0xAF => Some(Instruction::()),
-                    0xB0 => Some(Instruction::()),
-                    0xB1 => Some(Instruction::()),
-                    0xB2 => Some(Instruction::()),
-                    0xB3 => Some(Instruction::()),
-                    0xB4 => Some(Instruction::()),
-                    0xB5 => Some(Instruction::()),
-                    0xB6 => Some(Instruction::()),
-                    0xB7 => Some(Instruction::()),
-                    0xB8 => Some(Instruction::()),
-                    0xB9 => Some(Instruction::()),
-                    0xBA => Some(Instruction::()),
-                    0xBB => Some(Instruction::()),
-                    0xBC => Some(Instruction::()),
-                    0xBD => Some(Instruction::()),
-                    0xBE => Some(Instruction::()),
-                    0xBF => Some(Instruction::()),
-                    0xC0 => Some(Instruction::()),
-                    0xC1 => Some(Instruction::()),
-                    0xC2 => Some(Instruction::()),
-                    0xC3 => Some(Instruction::()),
-                    0xC4 => Some(Instruction::()),
-                    0xC5 => Some(Instruction::()),
-                    0xC6 => Some(Instruction::()),
-                    0xC7 => Some(Instruction::()),
-                    0xC8 => Some(Instruction::()),
-                    0xC9 => Some(Instruction::()),
-                    0xCA => Some(Instruction::()),
-                    0xCB => Some(Instruction::()),
-                    0xCC => Some(Instruction::()),
-                    0xCD => Some(Instruction::()),
-                    0xCE => Some(Instruction::()),
-                    0xCF => Some(Instruction::()),
-                    0xD0 => Some(Instruction::()),
-                    0xD1 => Some(Instruction::()),
-                    0xD2 => Some(Instruction::()),
-                    0xD3 => Some(Instruction::()),
-                    0xD4 => Some(Instruction::()),
-                    0xD5 => Some(Instruction::()),
-                    0xD6 => Some(Instruction::()),
-                    0xD7 => Some(Instruction::()),
-                    0xD8 => Some(Instruction::()),
-                    0xD9 => Some(Instruction::()),
-                    0xDA => Some(Instruction::()),
-                    0xDB => Some(Instruction::()),
-                    0xDC => Some(Instruction::()),
-                    0xDD => Some(Instruction::()),
-                    0xDE => Some(Instruction::()),
-                    0xDF => Some(Instruction::()),
-                    0xE0 => Some(Instruction::()),
-                    0xE1 => Some(Instruction::()),
-                    0xE2 => Some(Instruction::()),
-                    0xE3 => Some(Instruction::()),
-                    0xE4 => Some(Instruction::()),
-                    0xE5 => Some(Instruction::()),
-                    0xE6 => Some(Instruction::()),
-                    0xE7 => Some(Instruction::()),
-                    0xE8 => Some(Instruction::()),
-                    0xE9 => Some(Instruction::()),
-                    0xEA => Some(Instruction::()),
-                    0xEB => Some(Instruction::()),
-                    0xEC => Some(Instruction::()),
-                    0xED => Some(Instruction::()),
-                    0xEE => Some(Instruction::()),
-                    0xEF => Some(Instruction::()),
-                    0xF0 => Some(Instruction::()),
-                    0xF1 => Some(Instruction::()),
-                    0xF2 => Some(Instruction::()),
-                    0xF3 => Some(Instruction::()),
-                    0xF4 => Some(Instruction::()),
-                    0xF5 => Some(Instruction::()),
-                    0xF6 => Some(Instruction::()),
-                    0xF7 => Some(Instruction::()),
-                    0xF8 => Some(Instruction::()),
-                    0xF9 => Some(Instruction::()),
-                    0xFA => Some(Instruction::()),
-                    0xFB => Some(Instruction::()),
-                    0xFC => Some(Instruction::()),
-                    0xFD => Some(Instruction::()),
-                    0xFE => Some(Instruction::()),
-                    0xFF => Some(Instruction::())
+                    0x00 => Some(Instruction::RLC(ArithmeticTarget::B)),
+                    0x01 => Some(Instruction::RLC(ArithmeticTarget::C)),
+                    0x02 => Some(Instruction::RLC(ArithmeticTarget::D)),
+                    0x03 => Some(Instruction::RLC(ArithmeticTarget::E)),
+                    0x04 => Some(Instruction::RLC(ArithmeticTarget::H)),
+                    0x05 => Some(Instruction::RLC(ArithmeticTarget::L)),
+                    0x06 => Some(Instruction::RLC(ArithmeticTarget::HL)),
+                    0x07 => Some(Instruction::RLC(ArithmeticTarget::A)),
+                    0x08 => Some(Instruction::RRC(ArithmeticTarget::B)),
+                    0x09 => Some(Instruction::RRC(ArithmeticTarget::C)),
+                    0x0A => Some(Instruction::RRC(ArithmeticTarget::D)),
+                    0x0B => Some(Instruction::RRC(ArithmeticTarget::E)),
+                    0x0C => Some(Instruction::RRC(ArithmeticTarget::H)),
+                    0x0D => Some(Instruction::RRC(ArithmeticTarget::L)),
+                    0x0E => Some(Instruction::RRC(ArithmeticTarget::HL)),
+                    0x0F => Some(Instruction::RRC(ArithmeticTarget::A)),
+                    0x10 => Some(Instruction::RL(ArithmeticTarget::B)),
+                    0x11 => Some(Instruction::RL(ArithmeticTarget::C)),
+                    0x12 => Some(Instruction::RL(ArithmeticTarget::D)),
+                    0x13 => Some(Instruction::RL(ArithmeticTarget::E)),
+                    0x14 => Some(Instruction::RL(ArithmeticTarget::H)),
+                    0x15 => Some(Instruction::RL(ArithmeticTarget::L)),
+                    0x16 => Some(Instruction::RL(ArithmeticTarget::HL)),
+                    0x17 => Some(Instruction::RL(ArithmeticTarget::A)),
+                    0x18 => Some(Instruction::RR(ArithmeticTarget::B)),
+                    0x19 => Some(Instruction::RR(ArithmeticTarget::C)),
+                    0x1A => Some(Instruction::RR(ArithmeticTarget::D)),
+                    0x1B => Some(Instruction::RR(ArithmeticTarget::E)),
+                    0x1C => Some(Instruction::RR(ArithmeticTarget::H)),
+                    0x1D => Some(Instruction::RR(ArithmeticTarget::L)),
+                    0x1E => Some(Instruction::RR(ArithmeticTarget::HL)),
+                    0x1F => Some(Instruction::RR(ArithmeticTarget::A)),
+                    0x20 => Some(Instruction::SLA(ArithmeticTarget::B)),
+                    0x21 => Some(Instruction::SLA(ArithmeticTarget::C)),
+                    0x22 => Some(Instruction::SLA(ArithmeticTarget::D)),
+                    0x23 => Some(Instruction::SLA(ArithmeticTarget::E)),
+                    0x24 => Some(Instruction::SLA(ArithmeticTarget::H)),
+                    0x25 => Some(Instruction::SLA(ArithmeticTarget::L)),
+                    0x26 => Some(Instruction::SLA(ArithmeticTarget::HL)),
+                    0x27 => Some(Instruction::SLA(ArithmeticTarget::A)),
+                    0x28 => Some(Instruction::SRA(ArithmeticTarget::B)),
+                    0x29 => Some(Instruction::SRA(ArithmeticTarget::C)),
+                    0x2A => Some(Instruction::SRA(ArithmeticTarget::D)),
+                    0x2B => Some(Instruction::SRA(ArithmeticTarget::E)),
+                    0x2C => Some(Instruction::SRA(ArithmeticTarget::H)),
+                    0x2D => Some(Instruction::SRA(ArithmeticTarget::L)),
+                    0x2E => Some(Instruction::SRA(ArithmeticTarget::HL)),
+                    0x2F => Some(Instruction::SRA(ArithmeticTarget::A)),
+                    0x30 => Some(Instruction::SWAP(ArithmeticTarget::B)),
+                    0x31 => Some(Instruction::SWAP(ArithmeticTarget::C)),
+                    0x32 => Some(Instruction::SWAP(ArithmeticTarget::D)),
+                    0x33 => Some(Instruction::SWAP(ArithmeticTarget::E)),
+                    0x34 => Some(Instruction::SWAP(ArithmeticTarget::H)),
+                    0x35 => Some(Instruction::SWAP(ArithmeticTarget::L)),
+                    0x36 => Some(Instruction::SWAP(ArithmeticTarget::HL)),
+                    0x37 => Some(Instruction::SWAP(ArithmeticTarget::A)),
+                    0x38 => Some(Instruction::SRL(ArithmeticTarget::B)),
+                    0x39 => Some(Instruction::SRL(ArithmeticTarget::C)),
+                    0x3A => Some(Instruction::SRL(ArithmeticTarget::D)),
+                    0x3B => Some(Instruction::SRL(ArithmeticTarget::E)),
+                    0x3C => Some(Instruction::SRL(ArithmeticTarget::H)),
+                    0x3D => Some(Instruction::SRL(ArithmeticTarget::L)),
+                    0x3E => Some(Instruction::SRL(ArithmeticTarget::HL)),
+                    0x3F => Some(Instruction::SRL(ArithmeticTarget::A)),
+                    0x40 => Some(Instruction::BIT(ArithmeticTarget::B, 0)),
+                    0x41 => Some(Instruction::BIT(ArithmeticTarget::C, 0)),
+                    0x42 => Some(Instruction::BIT(ArithmeticTarget::D, 0)),
+                    0x43 => Some(Instruction::BIT(ArithmeticTarget::E, 0)),
+                    0x44 => Some(Instruction::BIT(ArithmeticTarget::H, 0)),
+                    0x45 => Some(Instruction::BIT(ArithmeticTarget::L, 0)),
+                    0x46 => Some(Instruction::BIT(ArithmeticTarget::HL, 0)),
+                    0x47 => Some(Instruction::BIT(ArithmeticTarget::A, 0)),
+                    0x48 => Some(Instruction::BIT(ArithmeticTarget::B, 1)),
+                    0x49 => Some(Instruction::BIT(ArithmeticTarget::C, 1)),
+                    0x4A => Some(Instruction::BIT(ArithmeticTarget::D, 1)),
+                    0x4B => Some(Instruction::BIT(ArithmeticTarget::E, 1)),
+                    0x4C => Some(Instruction::BIT(ArithmeticTarget::H, 1)),
+                    0x4D => Some(Instruction::BIT(ArithmeticTarget::L, 1)),
+                    0x4E => Some(Instruction::BIT(ArithmeticTarget::HL, 1)),
+                    0x4F => Some(Instruction::BIT(ArithmeticTarget::A, 1)),
+                    0x50 => Some(Instruction::BIT(ArithmeticTarget::B, 2)),
+                    0x51 => Some(Instruction::BIT(ArithmeticTarget::C, 2)),
+                    0x52 => Some(Instruction::BIT(ArithmeticTarget::D, 2)),
+                    0x53 => Some(Instruction::BIT(ArithmeticTarget::E, 2)),
+                    0x54 => Some(Instruction::BIT(ArithmeticTarget::H, 2)),
+                    0x55 => Some(Instruction::BIT(ArithmeticTarget::L, 2)),
+                    0x56 => Some(Instruction::BIT(ArithmeticTarget::HL, 2)),
+                    0x57 => Some(Instruction::BIT(ArithmeticTarget::A, 2)),
+                    0x58 => Some(Instruction::BIT(ArithmeticTarget::B, 3)),
+                    0x59 => Some(Instruction::BIT(ArithmeticTarget::C, 3)),
+                    0x5A => Some(Instruction::BIT(ArithmeticTarget::D, 3)),
+                    0x5B => Some(Instruction::BIT(ArithmeticTarget::E, 3)),
+                    0x5C => Some(Instruction::BIT(ArithmeticTarget::H, 3)),
+                    0x5D => Some(Instruction::BIT(ArithmeticTarget::L, 3)),
+                    0x5E => Some(Instruction::BIT(ArithmeticTarget::HL, 3)),
+                    0x5F => Some(Instruction::BIT(ArithmeticTarget::A, 3)),
+                    0x60 => Some(Instruction::BIT(ArithmeticTarget::B, 4)),
+                    0x61 => Some(Instruction::BIT(ArithmeticTarget::C, 4)),
+                    0x62 => Some(Instruction::BIT(ArithmeticTarget::D, 4)),
+                    0x63 => Some(Instruction::BIT(ArithmeticTarget::E, 4)),
+                    0x64 => Some(Instruction::BIT(ArithmeticTarget::H, 4)),
+                    0x65 => Some(Instruction::BIT(ArithmeticTarget::L, 4)),
+                    0x66 => Some(Instruction::BIT(ArithmeticTarget::HL, 4)),
+                    0x67 => Some(Instruction::BIT(ArithmeticTarget::A, 4)),
+                    0x68 => Some(Instruction::BIT(ArithmeticTarget::B, 5)),
+                    0x69 => Some(Instruction::BIT(ArithmeticTarget::C, 5)),
+                    0x6A => Some(Instruction::BIT(ArithmeticTarget::D, 5)),
+                    0x6B => Some(Instruction::BIT(ArithmeticTarget::E, 5)),
+                    0x6C => Some(Instruction::BIT(ArithmeticTarget::H, 5)),
+                    0x6D => Some(Instruction::BIT(ArithmeticTarget::L, 5)),
+                    0x6E => Some(Instruction::BIT(ArithmeticTarget::HL, 5)),
+                    0x6F => Some(Instruction::BIT(ArithmeticTarget::A, 5)),
+                    0x70 => Some(Instruction::BIT(ArithmeticTarget::B, 6)),
+                    0x71 => Some(Instruction::BIT(ArithmeticTarget::C, 6)),
+                    0x72 => Some(Instruction::BIT(ArithmeticTarget::D, 6)),
+                    0x73 => Some(Instruction::BIT(ArithmeticTarget::E, 6)),
+                    0x74 => Some(Instruction::BIT(ArithmeticTarget::H, 6)),
+                    0x75 => Some(Instruction::BIT(ArithmeticTarget::L, 6)),
+                    0x76 => Some(Instruction::BIT(ArithmeticTarget::HL, 6)),
+                    0x77 => Some(Instruction::BIT(ArithmeticTarget::A, 6)),
+                    0x78 => Some(Instruction::BIT(ArithmeticTarget::B, 7)),
+                    0x79 => Some(Instruction::BIT(ArithmeticTarget::C, 7)),
+                    0x7A => Some(Instruction::BIT(ArithmeticTarget::D, 7)),
+                    0x7B => Some(Instruction::BIT(ArithmeticTarget::E, 7)),
+                    0x7C => Some(Instruction::BIT(ArithmeticTarget::H, 7)),
+                    0x7D => Some(Instruction::BIT(ArithmeticTarget::L, 7)),
+                    0x7E => Some(Instruction::BIT(ArithmeticTarget::HL, 7)),
+                    0x7F => Some(Instruction::BIT(ArithmeticTarget::A, 7)),
+                    0x80 => Some(Instruction::RES(ArithmeticTarget::B, 0)), 
+                    0x81 => Some(Instruction::RES(ArithmeticTarget::C, 0)),
+                    0x82 => Some(Instruction::RES(ArithmeticTarget::D, 0)),
+                    0x83 => Some(Instruction::RES(ArithmeticTarget::E, 0)),
+                    0x84 => Some(Instruction::RES(ArithmeticTarget::H, 0)),
+                    0x85 => Some(Instruction::RES(ArithmeticTarget::L, 0)),
+                    0x86 => Some(Instruction::RES(ArithmeticTarget::HL, 0)),
+                    0x87 => Some(Instruction::RES(ArithmeticTarget::A, 0)),
+                    0x88 => Some(Instruction::RES(ArithmeticTarget::B, 1)),
+                    0x89 => Some(Instruction::RES(ArithmeticTarget::C, 1)),
+                    0x8A => Some(Instruction::RES(ArithmeticTarget::D, 1)),
+                    0x8B => Some(Instruction::RES(ArithmeticTarget::E, 1)),
+                    0x8C => Some(Instruction::RES(ArithmeticTarget::H, 1)),
+                    0x8D => Some(Instruction::RES(ArithmeticTarget::L, 1)),
+                    0x8E => Some(Instruction::RES(ArithmeticTarget::HL, 1)),
+                    0x8F => Some(Instruction::RES(ArithmeticTarget::A, 1)),
+                    0x90 => Some(Instruction::RES(ArithmeticTarget::B, 2)),
+                    0x91 => Some(Instruction::RES(ArithmeticTarget::C, 2)),
+                    0x92 => Some(Instruction::RES(ArithmeticTarget::D, 2)),
+                    0x93 => Some(Instruction::RES(ArithmeticTarget::E, 2)),
+                    0x94 => Some(Instruction::RES(ArithmeticTarget::H, 2)),
+                    0x95 => Some(Instruction::RES(ArithmeticTarget::L, 2)),
+                    0x96 => Some(Instruction::RES(ArithmeticTarget::HL, 2)),
+                    0x97 => Some(Instruction::RES(ArithmeticTarget::A, 2)),
+                    0x98 => Some(Instruction::RES(ArithmeticTarget::B, 3)),
+                    0x99 => Some(Instruction::RES(ArithmeticTarget::C, 3)),
+                    0x9A => Some(Instruction::RES(ArithmeticTarget::D, 3)),
+                    0x9B => Some(Instruction::RES(ArithmeticTarget::E, 3)),
+                    0x9C => Some(Instruction::RES(ArithmeticTarget::H, 3)),
+                    0x9D => Some(Instruction::RES(ArithmeticTarget::L, 3)),
+                    0x9E => Some(Instruction::RES(ArithmeticTarget::HL, 3)),
+                    0x9F => Some(Instruction::RES(ArithmeticTarget::A, 3)),
+                    0xA0 => Some(Instruction::RES(ArithmeticTarget::B, 4)),
+                    0xA1 => Some(Instruction::RES(ArithmeticTarget::C, 4)),
+                    0xA2 => Some(Instruction::RES(ArithmeticTarget::D, 4)),
+                    0xA3 => Some(Instruction::RES(ArithmeticTarget::E, 4)),
+                    0xA4 => Some(Instruction::RES(ArithmeticTarget::H, 4)),
+                    0xA5 => Some(Instruction::RES(ArithmeticTarget::L, 4)),
+                    0xA6 => Some(Instruction::RES(ArithmeticTarget::HL, 4)),
+                    0xA7 => Some(Instruction::RES(ArithmeticTarget::A, 4)),
+                    0xA8 => Some(Instruction::RES(ArithmeticTarget::B, 5)),
+                    0xA9 => Some(Instruction::RES(ArithmeticTarget::C, 5)),
+                    0xAA => Some(Instruction::RES(ArithmeticTarget::D, 5)),
+                    0xAB => Some(Instruction::RES(ArithmeticTarget::E, 5)),
+                    0xAC => Some(Instruction::RES(ArithmeticTarget::H, 5)),
+                    0xAD => Some(Instruction::RES(ArithmeticTarget::L, 5)),
+                    0xAE => Some(Instruction::RES(ArithmeticTarget::HL, 5)),
+                    0xAF => Some(Instruction::RES(ArithmeticTarget::A, 5)),
+                    0xB0 => Some(Instruction::RES(ArithmeticTarget::B, 6)),
+                    0xB1 => Some(Instruction::RES(ArithmeticTarget::C, 6)),
+                    0xB2 => Some(Instruction::RES(ArithmeticTarget::D, 6)),
+                    0xB3 => Some(Instruction::RES(ArithmeticTarget::E, 6)),
+                    0xB4 => Some(Instruction::RES(ArithmeticTarget::H, 6)),
+                    0xB5 => Some(Instruction::RES(ArithmeticTarget::L, 6)),
+                    0xB6 => Some(Instruction::RES(ArithmeticTarget::HL, 6)),
+                    0xB7 => Some(Instruction::RES(ArithmeticTarget::A, 6)),
+                    0xB8 => Some(Instruction::RES(ArithmeticTarget::B, 7)),
+                    0xB9 => Some(Instruction::RES(ArithmeticTarget::C, 7)),
+                    0xBA => Some(Instruction::RES(ArithmeticTarget::D, 7)),
+                    0xBB => Some(Instruction::RES(ArithmeticTarget::E, 7)),
+                    0xBC => Some(Instruction::RES(ArithmeticTarget::H, 7)),
+                    0xBD => Some(Instruction::RES(ArithmeticTarget::L, 7)),
+                    0xBE => Some(Instruction::RES(ArithmeticTarget::HL, 7)),
+                    0xBF => Some(Instruction::RES(ArithmeticTarget::A, 7)),
+                    0xC0 => Some(Instruction::SET(ArithmeticTarget::B, 0)), 
+                    0xC1 => Some(Instruction::SET(ArithmeticTarget::C, 0)),
+                    0xC2 => Some(Instruction::SET(ArithmeticTarget::D, 0)),
+                    0xC3 => Some(Instruction::SET(ArithmeticTarget::E, 0)),
+                    0xC4 => Some(Instruction::SET(ArithmeticTarget::H, 0)),
+                    0xC5 => Some(Instruction::SET(ArithmeticTarget::L, 0)),
+                    0xC6 => Some(Instruction::SET(ArithmeticTarget::HL, 0)),
+                    0xC7 => Some(Instruction::SET(ArithmeticTarget::A, 0)),
+                    0xC8 => Some(Instruction::SET(ArithmeticTarget::B, 1)),
+                    0xC9 => Some(Instruction::SET(ArithmeticTarget::C, 1)),
+                    0xCA => Some(Instruction::SET(ArithmeticTarget::D, 1)),
+                    0xCB => Some(Instruction::SET(ArithmeticTarget::E, 1)),
+                    0xCC => Some(Instruction::SET(ArithmeticTarget::H, 1)),
+                    0xCD => Some(Instruction::SET(ArithmeticTarget::L, 1)),
+                    0xCE => Some(Instruction::SET(ArithmeticTarget::HL, 1)),
+                    0xCF => Some(Instruction::SET(ArithmeticTarget::A, 1)),
+                    0xD0 => Some(Instruction::SET(ArithmeticTarget::B, 2)),
+                    0xD1 => Some(Instruction::SET(ArithmeticTarget::C, 2)),
+                    0xD2 => Some(Instruction::SET(ArithmeticTarget::D, 2)),
+                    0xD3 => Some(Instruction::SET(ArithmeticTarget::E, 2)),
+                    0xD4 => Some(Instruction::SET(ArithmeticTarget::H, 2)),
+                    0xD5 => Some(Instruction::SET(ArithmeticTarget::L, 2)),
+                    0xD6 => Some(Instruction::SET(ArithmeticTarget::HL, 2)),
+                    0xD7 => Some(Instruction::SET(ArithmeticTarget::A, 2)),
+                    0xD8 => Some(Instruction::SET(ArithmeticTarget::B, 3)),
+                    0xD9 => Some(Instruction::SET(ArithmeticTarget::C, 3)),
+                    0xDA => Some(Instruction::SET(ArithmeticTarget::D, 3)),
+                    0xDB => Some(Instruction::SET(ArithmeticTarget::E, 3)),
+                    0xDC => Some(Instruction::SET(ArithmeticTarget::H, 3)),
+                    0xDD => Some(Instruction::SET(ArithmeticTarget::L, 3)),
+                    0xDE => Some(Instruction::SET(ArithmeticTarget::HL, 3)),
+                    0xDF => Some(Instruction::SET(ArithmeticTarget::A, 3)),
+                    0xE0 => Some(Instruction::SET(ArithmeticTarget::B, 4)),
+                    0xE1 => Some(Instruction::SET(ArithmeticTarget::C, 4)),
+                    0xE2 => Some(Instruction::SET(ArithmeticTarget::D, 4)),
+                    0xE3 => Some(Instruction::SET(ArithmeticTarget::E, 4)),
+                    0xE4 => Some(Instruction::SET(ArithmeticTarget::H, 4)),
+                    0xE5 => Some(Instruction::SET(ArithmeticTarget::L, 4)),
+                    0xE6 => Some(Instruction::SET(ArithmeticTarget::HL, 4)),
+                    0xE7 => Some(Instruction::SET(ArithmeticTarget::A, 4)),
+                    0xE8 => Some(Instruction::SET(ArithmeticTarget::B, 5)),
+                    0xE9 => Some(Instruction::SET(ArithmeticTarget::C, 5)),
+                    0xEA => Some(Instruction::SET(ArithmeticTarget::D, 5)),
+                    0xEB => Some(Instruction::SET(ArithmeticTarget::E, 5)),
+                    0xEC => Some(Instruction::SET(ArithmeticTarget::H, 5)),
+                    0xED => Some(Instruction::SET(ArithmeticTarget::L, 5)),
+                    0xEE => Some(Instruction::SET(ArithmeticTarget::HL, 5)),
+                    0xEF => Some(Instruction::SET(ArithmeticTarget::A, 5)),
+                    0xF0 => Some(Instruction::SET(ArithmeticTarget::B, 6)),
+                    0xF1 => Some(Instruction::SET(ArithmeticTarget::C, 6)),
+                    0xF2 => Some(Instruction::SET(ArithmeticTarget::D, 6)),
+                    0xF3 => Some(Instruction::SET(ArithmeticTarget::E, 6)),
+                    0xF4 => Some(Instruction::SET(ArithmeticTarget::H, 6)),
+                    0xF5 => Some(Instruction::SET(ArithmeticTarget::L, 6)),
+                    0xF6 => Some(Instruction::SET(ArithmeticTarget::HL, 6)),
+                    0xF7 => Some(Instruction::SET(ArithmeticTarget::A, 6)),
+                    0xF8 => Some(Instruction::SET(ArithmeticTarget::B, 7)),
+                    0xF9 => Some(Instruction::SET(ArithmeticTarget::C, 7)),
+                    0xFA => Some(Instruction::SET(ArithmeticTarget::D, 7)),
+                    0xFB => Some(Instruction::SET(ArithmeticTarget::E, 7)),
+                    0xFC => Some(Instruction::SET(ArithmeticTarget::H, 7)),
+                    0xFD => Some(Instruction::SET(ArithmeticTarget::L, 7)),
+                    0xFE => Some(Instruction::SET(ArithmeticTarget::HL, 7)),
+                    0xFF => Some(Instruction::SET(ArithmeticTarget::A, 7)),
                 }
         }
 }
@@ -739,332 +740,385 @@ impl CPU
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.add(self.registers.a);}
-                        ArithmeticTarget::B => {self.registers.a = self.add(self.registers.b);}
-                        ArithmeticTarget::C => {self.registers.a = self.add(self.registers.c);}
-                        ArithmeticTarget::D => {self.registers.a = self.add(self.registers.d);}
-                        ArithmeticTarget::E => {self.registers.a = self.add(self.registers.e);}
-                        ArithmeticTarget::H => {self.registers.a = self.add(self.registers.h);}
-                        ArithmeticTarget::L => {self.registers.a = self.add(self.registers.l);}
+                        ArithmeticTarget::A => {self.registers.a = self.add(self.registers.a); self.pc = self.pc + 1;}
+                        ArithmeticTarget::B => {self.registers.a = self.add(self.registers.b); self.pc = self.pc + 1;}
+                        ArithmeticTarget::C => {self.registers.a = self.add(self.registers.c); self.pc = self.pc + 1;}
+                        ArithmeticTarget::D => {self.registers.a = self.add(self.registers.d); self.pc = self.pc + 1;}
+                        ArithmeticTarget::E => {self.registers.a = self.add(self.registers.e); self.pc = self.pc + 1;}
+                        ArithmeticTarget::H => {self.registers.a = self.add(self.registers.h); self.pc = self.pc + 1;}
+                        ArithmeticTarget::L => {self.registers.a = self.add(self.registers.l); self.pc = self.pc + 1;}
+                        ArithmeticTarget::HL => {self.registers.a = self.add(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 1;}
+                        ArithmeticTarget::U8 => {self.registers.a = self.add(self.bus.read_byte(self.pc + 1)); self.pc = self.pc + 2;}
                     }
                 }
                 Instruction::ADDHL(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget16::AF => {let af = self.registers.get_af(); let result = self.addhl(af); self.registers.set_hl(result);}
-                        ArithmeticTarget16::BC => {let bc = self.registers.get_bc(); let result = self.addhl(bc); self.registers.set_hl(result);}
-                        ArithmeticTarget16::DE => {let de = self.registers.get_de(); let result = self.addhl(de); self.registers.set_hl(result);}
-                        ArithmeticTarget16::HL => {let hl = self.registers.get_hl(); let result = self.addhl(hl); self.registers.set_hl(result);}
+                        ArithmeticTarget16::AF => {let af = self.registers.get_af(); let result = self.addhl(af); self.registers.set_hl(result); self.pc = self.pc + 1;}
+                        ArithmeticTarget16::BC => {let bc = self.registers.get_bc(); let result = self.addhl(bc); self.registers.set_hl(result); self.pc = self.pc + 1;}
+                        ArithmeticTarget16::DE => {let de = self.registers.get_de(); let result = self.addhl(de); self.registers.set_hl(result); self.pc = self.pc + 1;}
+                        ArithmeticTarget16::HL => {let hl = self.registers.get_hl(); let result = self.addhl(hl); self.registers.set_hl(result); self.pc = self.pc + 1;}
                     }
                 }
                 Instruction::ADC(target) =>
                 {
                     match target 
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.adc(self.registers.a);}
-                        ArithmeticTarget::B => {self.registers.a = self.adc(self.registers.b);}
-                        ArithmeticTarget::C => {self.registers.a = self.adc(self.registers.c);}
-                        ArithmeticTarget::D => {self.registers.a = self.adc(self.registers.d);}
-                        ArithmeticTarget::E => {self.registers.a = self.adc(self.registers.e);}
-                        ArithmeticTarget::H => {self.registers.a = self.adc(self.registers.h);}
-                        ArithmeticTarget::L => {self.registers.a = self.adc(self.registers.l);}   
+                        ArithmeticTarget::A => {self.registers.a = self.adc(self.registers.a); self.pc = self.pc + 1;}
+                        ArithmeticTarget::B => {self.registers.a = self.adc(self.registers.b); self.pc = self.pc + 1;}
+                        ArithmeticTarget::C => {self.registers.a = self.adc(self.registers.c); self.pc = self.pc + 1;}
+                        ArithmeticTarget::D => {self.registers.a = self.adc(self.registers.d); self.pc = self.pc + 1;}
+                        ArithmeticTarget::E => {self.registers.a = self.adc(self.registers.e); self.pc = self.pc + 1;}
+                        ArithmeticTarget::H => {self.registers.a = self.adc(self.registers.h); self.pc = self.pc + 1;}
+                        ArithmeticTarget::L => {self.registers.a = self.adc(self.registers.l); self.pc = self.pc + 1;}
+                        ArithmeticTarget::HL => {self.registers.a = self.adc(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 1;}
+                        ArithmeticTarget::U8 => {self.registers.a = self.adc(self.bus.read_byte(self.pc + 1)); self.pc = self.pc + 2;}      
                     }
                 }
                 Instruction::SUB(target) => 
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.sub(self.registers.a);}
-                        ArithmeticTarget::B => {self.registers.a = self.sub(self.registers.b);}
-                        ArithmeticTarget::C => {self.registers.a = self.sub(self.registers.c);}
-                        ArithmeticTarget::D => {self.registers.a = self.sub(self.registers.d);}
-                        ArithmeticTarget::E => {self.registers.a = self.sub(self.registers.e);}
-                        ArithmeticTarget::H => {self.registers.a = self.sub(self.registers.h);}
-                        ArithmeticTarget::L => {self.registers.a = self.sub(self.registers.l);}
+                        ArithmeticTarget::A => {self.registers.a = self.sub(self.registers.a); self.pc = self.pc + 1;}
+                        ArithmeticTarget::B => {self.registers.a = self.sub(self.registers.b); self.pc = self.pc + 1;}
+                        ArithmeticTarget::C => {self.registers.a = self.sub(self.registers.c); self.pc = self.pc + 1;}
+                        ArithmeticTarget::D => {self.registers.a = self.sub(self.registers.d); self.pc = self.pc + 1;}
+                        ArithmeticTarget::E => {self.registers.a = self.sub(self.registers.e); self.pc = self.pc + 1;}
+                        ArithmeticTarget::H => {self.registers.a = self.sub(self.registers.h); self.pc = self.pc + 1;}
+                        ArithmeticTarget::L => {self.registers.a = self.sub(self.registers.l); self.pc = self.pc + 1;}
+                        ArithmeticTarget::HL => {self.registers.a = self.sub(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 1;}
+                        ArithmeticTarget::U8 => {self.registers.a = self.sub(self.bus.read_byte(self.pc + 1)); self.pc = self.pc + 2;}
                     }
                 }
                 Instruction::SBC(target) =>
                 {
                     match target 
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.sbc(self.registers.a);}
-                        ArithmeticTarget::B => {self.registers.a = self.sbc(self.registers.b);}
-                        ArithmeticTarget::C => {self.registers.a = self.sbc(self.registers.c);}
-                        ArithmeticTarget::D => {self.registers.a = self.sbc(self.registers.d);}
-                        ArithmeticTarget::E => {self.registers.a = self.sbc(self.registers.e);}
-                        ArithmeticTarget::H => {self.registers.a = self.sbc(self.registers.h);}
-                        ArithmeticTarget::L => {self.registers.a = self.sbc(self.registers.l);}  
+                        ArithmeticTarget::A => {self.registers.a = self.sbc(self.registers.a); self.pc = self.pc + 1;}
+                        ArithmeticTarget::B => {self.registers.a = self.sbc(self.registers.b); self.pc = self.pc + 1;}
+                        ArithmeticTarget::C => {self.registers.a = self.sbc(self.registers.c); self.pc = self.pc + 1;}
+                        ArithmeticTarget::D => {self.registers.a = self.sbc(self.registers.d); self.pc = self.pc + 1;}
+                        ArithmeticTarget::E => {self.registers.a = self.sbc(self.registers.e); self.pc = self.pc + 1;}
+                        ArithmeticTarget::H => {self.registers.a = self.sbc(self.registers.h); self.pc = self.pc + 1;}
+                        ArithmeticTarget::L => {self.registers.a = self.sbc(self.registers.l); self.pc = self.pc + 1;}
+                        ArithmeticTarget::HL => {self.registers.a = self.sbc(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 1;}
+                        ArithmeticTarget::U8 => {self.registers.a = self.sbc(self.bus.read_byte(self.pc + 1)); self.pc = self.pc + 2;}    
                     }
                 }
                 Instruction::AND(target) =>
                 {
                     match target 
                     {
-                        ArithmeticTarget::A => {self.and(self.registers.a);}
-                        ArithmeticTarget::B => {self.and(self.registers.b);}
-                        ArithmeticTarget::C => {self.and(self.registers.c);}
-                        ArithmeticTarget::D => {self.and(self.registers.d);}
-                        ArithmeticTarget::E => {self.and(self.registers.e);}
-                        ArithmeticTarget::H => {self.and(self.registers.h);}
-                        ArithmeticTarget::L => {self.and(self.registers.l);}  
+                        ArithmeticTarget::A => {self.and(self.registers.a); self.pc = self.pc + 1;}
+                        ArithmeticTarget::B => {self.and(self.registers.b); self.pc = self.pc + 1;}
+                        ArithmeticTarget::C => {self.and(self.registers.c); self.pc = self.pc + 1;}
+                        ArithmeticTarget::D => {self.and(self.registers.d); self.pc = self.pc + 1;}
+                        ArithmeticTarget::E => {self.and(self.registers.e); self.pc = self.pc + 1;}
+                        ArithmeticTarget::H => {self.and(self.registers.h); self.pc = self.pc + 1;}
+                        ArithmeticTarget::L => {self.and(self.registers.l); self.pc = self.pc + 1;}  
+                        ArithmeticTarget::HL => {self.and(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 1;}
+                        ArithmeticTarget::U8 => {self.and(self.bus.read_byte(self.pc + 1)); self.pc = self.pc + 2;}    
                     }
                 } 
                 Instruction::OR(target) =>
                 {
                     match target 
                     {
-                        ArithmeticTarget::A => {self.or(self.registers.a);}
-                        ArithmeticTarget::B => {self.or(self.registers.b);}
-                        ArithmeticTarget::C => {self.or(self.registers.c);}
-                        ArithmeticTarget::D => {self.or(self.registers.d);}
-                        ArithmeticTarget::E => {self.or(self.registers.e);}
-                        ArithmeticTarget::H => {self.or(self.registers.h);}
-                        ArithmeticTarget::L => {self.or(self.registers.l);}  
+                        ArithmeticTarget::A => {self.or(self.registers.a); self.pc = self.pc + 1;}
+                        ArithmeticTarget::B => {self.or(self.registers.b); self.pc = self.pc + 1;}
+                        ArithmeticTarget::C => {self.or(self.registers.c); self.pc = self.pc + 1;}
+                        ArithmeticTarget::D => {self.or(self.registers.d); self.pc = self.pc + 1;}
+                        ArithmeticTarget::E => {self.or(self.registers.e); self.pc = self.pc + 1;}
+                        ArithmeticTarget::H => {self.or(self.registers.h); self.pc = self.pc + 1;}
+                        ArithmeticTarget::L => {self.or(self.registers.l); self.pc = self.pc + 1;}  
+                        ArithmeticTarget::HL => {self.or(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 1;}
+                        ArithmeticTarget::U8 => {self.or(self.bus.read_byte(self.pc + 1)); self.pc = self.pc + 2;}    
                     }
                 } 
                 Instruction::XOR(target) =>
                 {
                     match target 
                     {
-                        ArithmeticTarget::A => {self.xor(self.registers.a);}
-                        ArithmeticTarget::B => {self.xor(self.registers.b);}
-                        ArithmeticTarget::C => {self.xor(self.registers.c);}
-                        ArithmeticTarget::D => {self.xor(self.registers.d);}
-                        ArithmeticTarget::E => {self.xor(self.registers.e);}
-                        ArithmeticTarget::H => {self.xor(self.registers.h);}
-                        ArithmeticTarget::L => {self.xor(self.registers.l);}  
+                        ArithmeticTarget::A => {self.xor(self.registers.a); self.pc = self.pc + 1;}
+                        ArithmeticTarget::B => {self.xor(self.registers.b); self.pc = self.pc + 1;}
+                        ArithmeticTarget::C => {self.xor(self.registers.c); self.pc = self.pc + 1;}
+                        ArithmeticTarget::D => {self.xor(self.registers.d); self.pc = self.pc + 1;}
+                        ArithmeticTarget::E => {self.xor(self.registers.e); self.pc = self.pc + 1;}
+                        ArithmeticTarget::H => {self.xor(self.registers.h); self.pc = self.pc + 1;}
+                        ArithmeticTarget::L => {self.xor(self.registers.l); self.pc = self.pc + 1;}  
+                        ArithmeticTarget::HL => {self.xor(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 1;}
+                        ArithmeticTarget::U8 => {self.xor(self.bus.read_byte(self.pc + 1)); self.pc = self.pc + 2;}    
                     }
                 }
                 Instruction::CP(target) => 
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.cp(self.registers.a);}
-                        ArithmeticTarget::B => {self.cp(self.registers.b);}
-                        ArithmeticTarget::C => {self.cp(self.registers.c);}
-                        ArithmeticTarget::D => {self.cp(self.registers.d);}
-                        ArithmeticTarget::E => {self.cp(self.registers.e);}
-                        ArithmeticTarget::H => {self.cp(self.registers.h);}
-                        ArithmeticTarget::L => {self.cp(self.registers.l);}
+                        ArithmeticTarget::A => {self.cp(self.registers.a); self.pc = self.pc + 1;}
+                        ArithmeticTarget::B => {self.cp(self.registers.b); self.pc = self.pc + 1;}
+                        ArithmeticTarget::C => {self.cp(self.registers.c); self.pc = self.pc + 1;}
+                        ArithmeticTarget::D => {self.cp(self.registers.d); self.pc = self.pc + 1;}
+                        ArithmeticTarget::E => {self.cp(self.registers.e); self.pc = self.pc + 1;}
+                        ArithmeticTarget::H => {self.cp(self.registers.h); self.pc = self.pc + 1;}
+                        ArithmeticTarget::L => {self.cp(self.registers.l); self.pc = self.pc + 1;}
+                        ArithmeticTarget::HL => {self.cp(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 1;}
+                        ArithmeticTarget::U8 => {self.cp(self.bus.read_byte(self.pc + 1)); self.pc = self.pc + 2;}    
                     }
                 }
                 Instruction::INC8(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.inc_8(self.registers.a);}
-                        ArithmeticTarget::B => {self.registers.b = self.inc_8(self.registers.b);}
-                        ArithmeticTarget::C => {self.registers.c = self.inc_8(self.registers.c);}
-                        ArithmeticTarget::D => {self.registers.d = self.inc_8(self.registers.d);}
-                        ArithmeticTarget::E => {self.registers.e = self.inc_8(self.registers.e);}
-                        ArithmeticTarget::H => {self.registers.h = self.inc_8(self.registers.h);}
-                        ArithmeticTarget::L => {self.registers.l = self.inc_8(self.registers.l);}
+                        ArithmeticTarget::A => {self.registers.a = self.inc_8(self.registers.a); self.pc = self.pc + 1;}
+                        ArithmeticTarget::B => {self.registers.b = self.inc_8(self.registers.b); self.pc = self.pc + 1;}
+                        ArithmeticTarget::C => {self.registers.c = self.inc_8(self.registers.c); self.pc = self.pc + 1;}
+                        ArithmeticTarget::D => {self.registers.d = self.inc_8(self.registers.d); self.pc = self.pc + 1;}
+                        ArithmeticTarget::E => {self.registers.e = self.inc_8(self.registers.e); self.pc = self.pc + 1;}
+                        ArithmeticTarget::H => {self.registers.h = self.inc_8(self.registers.h); self.pc = self.pc + 1;}
+                        ArithmeticTarget::L => {self.registers.l = self.inc_8(self.registers.l); self.pc = self.pc + 1;}
+                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.inc_8(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 1;}
+                        ArithmeticTarget::U8 => {}
                     }
                 }
                 Instruction::INC16(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget16::AF => {let af = self.registers.get_af(); let result = self.inc_16(af); self.registers.set_af(result);}
-                        ArithmeticTarget16::BC => {let bc = self.registers.get_bc(); let result = self.inc_16(bc); self.registers.set_bc(result);}
-                        ArithmeticTarget16::DE => {let de = self.registers.get_de(); let result = self.inc_16(de); self.registers.set_de(result);}
-                        ArithmeticTarget16::HL => {let hl = self.registers.get_hl(); let result = self.inc_16(hl); self.registers.set_hl(result);}
+                        ArithmeticTarget16::AF => {let af = self.registers.get_af(); let result = self.inc_16(af); self.registers.set_af(result); self.pc = self.pc + 1;}
+                        ArithmeticTarget16::BC => {let bc = self.registers.get_bc(); let result = self.inc_16(bc); self.registers.set_bc(result); self.pc = self.pc + 1;}
+                        ArithmeticTarget16::DE => {let de = self.registers.get_de(); let result = self.inc_16(de); self.registers.set_de(result); self.pc = self.pc + 1;}
+                        ArithmeticTarget16::HL => {let hl = self.registers.get_hl(); let result = self.inc_16(hl); self.registers.set_hl(result); self.pc = self.pc + 1;}
                     }
                 }
                 Instruction::DEC8(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.dec_8(self.registers.a);}
-                        ArithmeticTarget::B => {self.registers.b = self.dec_8(self.registers.b);}
-                        ArithmeticTarget::C => {self.registers.c = self.dec_8(self.registers.c);}
-                        ArithmeticTarget::D => {self.registers.d = self.dec_8(self.registers.d);}
-                        ArithmeticTarget::E => {self.registers.e = self.dec_8(self.registers.e);}
-                        ArithmeticTarget::H => {self.registers.h = self.dec_8(self.registers.h);}
-                        ArithmeticTarget::L => {self.registers.l = self.dec_8(self.registers.l);}
+                        ArithmeticTarget::A => {self.registers.a = self.dec_8(self.registers.a); self.pc = self.pc + 1;}
+                        ArithmeticTarget::B => {self.registers.b = self.dec_8(self.registers.b); self.pc = self.pc + 1;}
+                        ArithmeticTarget::C => {self.registers.c = self.dec_8(self.registers.c); self.pc = self.pc + 1;}
+                        ArithmeticTarget::D => {self.registers.d = self.dec_8(self.registers.d); self.pc = self.pc + 1;}
+                        ArithmeticTarget::E => {self.registers.e = self.dec_8(self.registers.e); self.pc = self.pc + 1;}
+                        ArithmeticTarget::H => {self.registers.h = self.dec_8(self.registers.h); self.pc = self.pc + 1;}
+                        ArithmeticTarget::L => {self.registers.l = self.dec_8(self.registers.l); self.pc = self.pc + 1;}
+                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.dec_8(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 1;}
+                        ArithmeticTarget::U8 => {}
                     }
                 }
                 Instruction::DEC16(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget16::AF => {let af = self.registers.get_af(); let result = self.dec_16(af); self.registers.set_af(result);}
-                        ArithmeticTarget16::BC => {let bc = self.registers.get_bc(); let result = self.dec_16(bc); self.registers.set_bc(result);}
-                        ArithmeticTarget16::DE => {let de = self.registers.get_de(); let result = self.dec_16(de); self.registers.set_de(result);}
-                        ArithmeticTarget16::HL => {let hl = self.registers.get_hl(); let result = self.dec_16(hl); self.registers.set_hl(result);}
+                        ArithmeticTarget16::AF => {let af = self.registers.get_af(); let result = self.dec_16(af); self.registers.set_af(result); self.pc = self.pc + 1;}
+                        ArithmeticTarget16::BC => {let bc = self.registers.get_bc(); let result = self.dec_16(bc); self.registers.set_bc(result); self.pc = self.pc + 1;}
+                        ArithmeticTarget16::DE => {let de = self.registers.get_de(); let result = self.dec_16(de); self.registers.set_de(result); self.pc = self.pc + 1;}
+                        ArithmeticTarget16::HL => {let hl = self.registers.get_hl(); let result = self.dec_16(hl); self.registers.set_hl(result); self.pc = self.pc + 1;}
                     }
                 }
                 Instruction::CCF() =>
                 {
                     self.ccf();
+                    self.pc = self.pc + 1;
                 }
                 Instruction::SCF() =>
                 {
                     self.scf();
+                    self.pc = self.pc + 1;
                 }
                 Instruction::RRA() =>
                 {
                     self.rra();
+                    self.pc = self.pc + 1;
                 }
                 Instruction::RLA() =>
                 {
                     self.rla();
+                    self.pc = self.pc + 1;
                 }
                 Instruction::RRCA() =>
                 {
                     self.rrca();
+                    self.pc = self.pc + 1;
                 }
                 Instruction::RLCA() =>
                 {
                     self.rlca();
+                    self.pc = self.pc + 1;
                 }
                 Instruction::CPL() =>
                 {
                     self.cpl();
+                    self.pc = self.pc + 1;
                 }
                 Instruction::BIT(target, bit) =>
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.bit(bit, self.registers.a);}
-                        ArithmeticTarget::B => {self.bit(bit, self.registers.b);}
-                        ArithmeticTarget::C => {self.bit(bit, self.registers.c);}
-                        ArithmeticTarget::D => {self.bit(bit, self.registers.d);}
-                        ArithmeticTarget::E => {self.bit(bit, self.registers.e);}
-                        ArithmeticTarget::H => {self.bit(bit, self.registers.h);}
-                        ArithmeticTarget::L => {self.bit(bit, self.registers.l);}
+                        ArithmeticTarget::A => {self.bit(bit, self.registers.a); self.pc = self.pc + 2;}
+                        ArithmeticTarget::B => {self.bit(bit, self.registers.b); self.pc = self.pc + 2;}
+                        ArithmeticTarget::C => {self.bit(bit, self.registers.c); self.pc = self.pc + 2;}
+                        ArithmeticTarget::D => {self.bit(bit, self.registers.d); self.pc = self.pc + 2;}
+                        ArithmeticTarget::E => {self.bit(bit, self.registers.e); self.pc = self.pc + 2;}
+                        ArithmeticTarget::H => {self.bit(bit, self.registers.h); self.pc = self.pc + 2;}
+                        ArithmeticTarget::L => {self.bit(bit, self.registers.l); self.pc = self.pc + 2;}
+                        ArithmeticTarget::HL => {self.bit(bit, self.registers.get_hl()); self.pc = self.pc + 2;}
+                        ArithmeticTarget::U8 => {}
                     }
                 }
                 Instruction::RES(target, bit) =>
                 {
                     match target 
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.res(bit, self.registers.a);}
-                        ArithmeticTarget::B => {self.registers.b = self.res(bit, self.registers.b);}
-                        ArithmeticTarget::C => {self.registers.c = self.res(bit, self.registers.c);}
-                        ArithmeticTarget::D => {self.registers.d = self.res(bit, self.registers.d);}
-                        ArithmeticTarget::E => {self.registers.e = self.res(bit, self.registers.e);}
-                        ArithmeticTarget::H => {self.registers.h = self.res(bit, self.registers.h);}
-                        ArithmeticTarget::L => {self.registers.l = self.res(bit, self.registers.l);}    
+                        ArithmeticTarget::A => {self.registers.a = self.res(bit, self.registers.a); self.pc = self.pc + 2;}
+                        ArithmeticTarget::B => {self.registers.b = self.res(bit, self.registers.b); self.pc = self.pc + 2;}
+                        ArithmeticTarget::C => {self.registers.c = self.res(bit, self.registers.c); self.pc = self.pc + 2;}
+                        ArithmeticTarget::D => {self.registers.d = self.res(bit, self.registers.d); self.pc = self.pc + 2;}
+                        ArithmeticTarget::E => {self.registers.e = self.res(bit, self.registers.e); self.pc = self.pc + 2;}
+                        ArithmeticTarget::H => {self.registers.h = self.res(bit, self.registers.h); self.pc = self.pc + 2;}
+                        ArithmeticTarget::L => {self.registers.l = self.res(bit, self.registers.l); self.pc = self.pc + 2;}
+                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.res(bit, self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 2;}
+                        ArithmeticTarget::U8 => {}    
                     }
                 }
                 Instruction::SET(target, bit) =>
                 {
                     match target 
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.set(bit, self.registers.a);}
-                        ArithmeticTarget::B => {self.registers.b = self.set(bit, self.registers.b);}
-                        ArithmeticTarget::C => {self.registers.c = self.set(bit, self.registers.c);}
-                        ArithmeticTarget::D => {self.registers.d = self.set(bit, self.registers.d);}
-                        ArithmeticTarget::E => {self.registers.e = self.set(bit, self.registers.e);}
-                        ArithmeticTarget::H => {self.registers.h = self.set(bit, self.registers.h);}
-                        ArithmeticTarget::L => {self.registers.l = self.set(bit, self.registers.l);}    
+                        ArithmeticTarget::A => {self.registers.a = self.set(bit, self.registers.a); self.pc = self.pc + 2;}
+                        ArithmeticTarget::B => {self.registers.b = self.set(bit, self.registers.b); self.pc = self.pc + 2;}
+                        ArithmeticTarget::C => {self.registers.c = self.set(bit, self.registers.c); self.pc = self.pc + 2;}
+                        ArithmeticTarget::D => {self.registers.d = self.set(bit, self.registers.d); self.pc = self.pc + 2;}
+                        ArithmeticTarget::E => {self.registers.e = self.set(bit, self.registers.e); self.pc = self.pc + 2;}
+                        ArithmeticTarget::H => {self.registers.h = self.set(bit, self.registers.h); self.pc = self.pc + 2;}
+                        ArithmeticTarget::L => {self.registers.l = self.set(bit, self.registers.l); self.pc = self.pc + 2;}
+                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.set(bit, self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 2;}
+                        ArithmeticTarget::U8 => {}    
                     }
                 }
                 Instruction::SRL(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.srl(self.registers.a);}
-                        ArithmeticTarget::B => {self.registers.b = self.srl(self.registers.b);}
-                        ArithmeticTarget::C => {self.registers.c = self.srl(self.registers.c);}
-                        ArithmeticTarget::D => {self.registers.d = self.srl(self.registers.d);}
-                        ArithmeticTarget::E => {self.registers.e = self.srl(self.registers.e);}
-                        ArithmeticTarget::H => {self.registers.h = self.srl(self.registers.h);}
-                        ArithmeticTarget::L => {self.registers.l = self.srl(self.registers.l);}
+                        ArithmeticTarget::A => {self.registers.a = self.srl(self.registers.a); self.pc = self.pc + 2;}
+                        ArithmeticTarget::B => {self.registers.b = self.srl(self.registers.b); self.pc = self.pc + 2;}
+                        ArithmeticTarget::C => {self.registers.c = self.srl(self.registers.c); self.pc = self.pc + 2;}
+                        ArithmeticTarget::D => {self.registers.d = self.srl(self.registers.d); self.pc = self.pc + 2;}
+                        ArithmeticTarget::E => {self.registers.e = self.srl(self.registers.e); self.pc = self.pc + 2;}
+                        ArithmeticTarget::H => {self.registers.h = self.srl(self.registers.h); self.pc = self.pc + 2;}
+                        ArithmeticTarget::L => {self.registers.l = self.srl(self.registers.l); self.pc = self.pc + 2;}
+                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.srl(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 2;}
+                        ArithmeticTarget::U8 => {}
                     }
                 }
                 Instruction::RR(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.rr(self.registers.a);}
-                        ArithmeticTarget::B => {self.registers.b = self.rr(self.registers.b);}
-                        ArithmeticTarget::C => {self.registers.c = self.rr(self.registers.c);}
-                        ArithmeticTarget::D => {self.registers.d = self.rr(self.registers.d);}
-                        ArithmeticTarget::E => {self.registers.e = self.rr(self.registers.e);}
-                        ArithmeticTarget::H => {self.registers.h = self.rr(self.registers.h);}
-                        ArithmeticTarget::L => {self.registers.l = self.rr(self.registers.l);}
+                        ArithmeticTarget::A => {self.registers.a = self.rr(self.registers.a); self.pc = self.pc + 2;}
+                        ArithmeticTarget::B => {self.registers.b = self.rr(self.registers.b); self.pc = self.pc + 2;}
+                        ArithmeticTarget::C => {self.registers.c = self.rr(self.registers.c); self.pc = self.pc + 2;}
+                        ArithmeticTarget::D => {self.registers.d = self.rr(self.registers.d); self.pc = self.pc + 2;}
+                        ArithmeticTarget::E => {self.registers.e = self.rr(self.registers.e); self.pc = self.pc + 2;}
+                        ArithmeticTarget::H => {self.registers.h = self.rr(self.registers.h); self.pc = self.pc + 2;}
+                        ArithmeticTarget::L => {self.registers.l = self.rr(self.registers.l); self.pc = self.pc + 2;}
+                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.rr(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 2;}
+                        ArithmeticTarget::U8 => {}
                     }
                 }
                 Instruction::RL(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.rl(self.registers.a);}
-                        ArithmeticTarget::B => {self.registers.b = self.rl(self.registers.b);}
-                        ArithmeticTarget::C => {self.registers.c = self.rl(self.registers.c);}
-                        ArithmeticTarget::D => {self.registers.d = self.rl(self.registers.d);}
-                        ArithmeticTarget::E => {self.registers.e = self.rl(self.registers.e);}
-                        ArithmeticTarget::H => {self.registers.h = self.rl(self.registers.h);}
-                        ArithmeticTarget::L => {self.registers.l = self.rl(self.registers.l);}
+                        ArithmeticTarget::A => {self.registers.a = self.rl(self.registers.a); self.pc = self.pc + 2;}
+                        ArithmeticTarget::B => {self.registers.b = self.rl(self.registers.b); self.pc = self.pc + 2;}
+                        ArithmeticTarget::C => {self.registers.c = self.rl(self.registers.c); self.pc = self.pc + 2;}
+                        ArithmeticTarget::D => {self.registers.d = self.rl(self.registers.d); self.pc = self.pc + 2;}
+                        ArithmeticTarget::E => {self.registers.e = self.rl(self.registers.e); self.pc = self.pc + 2;}
+                        ArithmeticTarget::H => {self.registers.h = self.rl(self.registers.h); self.pc = self.pc + 2;}
+                        ArithmeticTarget::L => {self.registers.l = self.rl(self.registers.l); self.pc = self.pc + 2;}
+                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.rl(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 2;}
+                        ArithmeticTarget::U8 => {}
                     }
                 }
                 Instruction::RRC(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.rrc(self.registers.a);}
-                        ArithmeticTarget::B => {self.registers.b = self.rrc(self.registers.b);}
-                        ArithmeticTarget::C => {self.registers.c = self.rrc(self.registers.c);}
-                        ArithmeticTarget::D => {self.registers.d = self.rrc(self.registers.d);}
-                        ArithmeticTarget::E => {self.registers.e = self.rrc(self.registers.e);}
-                        ArithmeticTarget::H => {self.registers.h = self.rrc(self.registers.h);}
-                        ArithmeticTarget::L => {self.registers.l = self.rrc(self.registers.l);}
+                        ArithmeticTarget::A => {self.registers.a = self.rrc(self.registers.a); self.pc = self.pc + 2;}
+                        ArithmeticTarget::B => {self.registers.b = self.rrc(self.registers.b); self.pc = self.pc + 2;}
+                        ArithmeticTarget::C => {self.registers.c = self.rrc(self.registers.c); self.pc = self.pc + 2;}
+                        ArithmeticTarget::D => {self.registers.d = self.rrc(self.registers.d); self.pc = self.pc + 2;}
+                        ArithmeticTarget::E => {self.registers.e = self.rrc(self.registers.e); self.pc = self.pc + 2;}
+                        ArithmeticTarget::H => {self.registers.h = self.rrc(self.registers.h); self.pc = self.pc + 2;}
+                        ArithmeticTarget::L => {self.registers.l = self.rrc(self.registers.l); self.pc = self.pc + 2;}
+                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.rrc(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 2;}
+                        ArithmeticTarget::U8 => {}
                     }
                 }
                 Instruction::RLC(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.rlc(self.registers.a);}
-                        ArithmeticTarget::B => {self.registers.b = self.rlc(self.registers.b);}
-                        ArithmeticTarget::C => {self.registers.c = self.rlc(self.registers.c);}
-                        ArithmeticTarget::D => {self.registers.d = self.rlc(self.registers.d);}
-                        ArithmeticTarget::E => {self.registers.e = self.rlc(self.registers.e);}
-                        ArithmeticTarget::H => {self.registers.h = self.rlc(self.registers.h);}
-                        ArithmeticTarget::L => {self.registers.l = self.rlc(self.registers.l);}
+                        ArithmeticTarget::A => {self.registers.a = self.rlc(self.registers.a); self.pc = self.pc + 2;}
+                        ArithmeticTarget::B => {self.registers.b = self.rlc(self.registers.b); self.pc = self.pc + 2;}
+                        ArithmeticTarget::C => {self.registers.c = self.rlc(self.registers.c); self.pc = self.pc + 2;}
+                        ArithmeticTarget::D => {self.registers.d = self.rlc(self.registers.d); self.pc = self.pc + 2;}
+                        ArithmeticTarget::E => {self.registers.e = self.rlc(self.registers.e); self.pc = self.pc + 2;}
+                        ArithmeticTarget::H => {self.registers.h = self.rlc(self.registers.h); self.pc = self.pc + 2;}
+                        ArithmeticTarget::L => {self.registers.l = self.rlc(self.registers.l); self.pc = self.pc + 2;}
+                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.rlc(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 2;}
+                        ArithmeticTarget::U8 => {}
                     }
                 }
                 Instruction::SRA(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.sra(self.registers.a);}
-                        ArithmeticTarget::B => {self.registers.b = self.sra(self.registers.b);}
-                        ArithmeticTarget::C => {self.registers.c = self.sra(self.registers.c);}
-                        ArithmeticTarget::D => {self.registers.d = self.sra(self.registers.d);}
-                        ArithmeticTarget::E => {self.registers.e = self.sra(self.registers.e);}
-                        ArithmeticTarget::H => {self.registers.h = self.sra(self.registers.h);}
-                        ArithmeticTarget::L => {self.registers.l = self.sra(self.registers.l);}
+                        ArithmeticTarget::A => {self.registers.a = self.sra(self.registers.a); self.pc = self.pc + 2;}
+                        ArithmeticTarget::B => {self.registers.b = self.sra(self.registers.b); self.pc = self.pc + 2;}
+                        ArithmeticTarget::C => {self.registers.c = self.sra(self.registers.c); self.pc = self.pc + 2;}
+                        ArithmeticTarget::D => {self.registers.d = self.sra(self.registers.d); self.pc = self.pc + 2;}
+                        ArithmeticTarget::E => {self.registers.e = self.sra(self.registers.e); self.pc = self.pc + 2;}
+                        ArithmeticTarget::H => {self.registers.h = self.sra(self.registers.h); self.pc = self.pc + 2;}
+                        ArithmeticTarget::L => {self.registers.l = self.sra(self.registers.l); self.pc = self.pc + 2;}
+                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.sra(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 2;}
+                        ArithmeticTarget::U8 => {}
                     }
                 }
                 Instruction::SLA(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.sla(self.registers.a);}
-                        ArithmeticTarget::B => {self.registers.b = self.sla(self.registers.b);}
-                        ArithmeticTarget::C => {self.registers.c = self.sla(self.registers.c);}
-                        ArithmeticTarget::D => {self.registers.d = self.sla(self.registers.d);}
-                        ArithmeticTarget::E => {self.registers.e = self.sla(self.registers.e);}
-                        ArithmeticTarget::H => {self.registers.h = self.sla(self.registers.h);}
-                        ArithmeticTarget::L => {self.registers.l = self.sla(self.registers.l);}
+                        ArithmeticTarget::A => {self.registers.a = self.sla(self.registers.a); self.pc = self.pc + 2;}
+                        ArithmeticTarget::B => {self.registers.b = self.sla(self.registers.b); self.pc = self.pc + 2;}
+                        ArithmeticTarget::C => {self.registers.c = self.sla(self.registers.c); self.pc = self.pc + 2;}
+                        ArithmeticTarget::D => {self.registers.d = self.sla(self.registers.d); self.pc = self.pc + 2;}
+                        ArithmeticTarget::E => {self.registers.e = self.sla(self.registers.e); self.pc = self.pc + 2;}
+                        ArithmeticTarget::H => {self.registers.h = self.sla(self.registers.h); self.pc = self.pc + 2;}
+                        ArithmeticTarget::L => {self.registers.l = self.sla(self.registers.l); self.pc = self.pc + 2;}
+                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.sla(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 2;}
+                        ArithmeticTarget::U8 => {}
                     }
                 }
                 Instruction::SWAP(target) =>
                 {
                     match target
                     {
-                        ArithmeticTarget::A => {self.registers.a = self.swap(self.registers.a);}
-                        ArithmeticTarget::B => {self.registers.b = self.swap(self.registers.b);}
-                        ArithmeticTarget::C => {self.registers.c = self.swap(self.registers.c);}
-                        ArithmeticTarget::D => {self.registers.d = self.swap(self.registers.d);}
-                        ArithmeticTarget::E => {self.registers.e = self.swap(self.registers.e);}
-                        ArithmeticTarget::H => {self.registers.h = self.swap(self.registers.h);}
-                        ArithmeticTarget::L => {self.registers.l = self.swap(self.registers.l);}
+                        ArithmeticTarget::A => {self.registers.a = self.swap(self.registers.a); self.pc = self.pc + 2;}
+                        ArithmeticTarget::B => {self.registers.b = self.swap(self.registers.b); self.pc = self.pc + 2;}
+                        ArithmeticTarget::C => {self.registers.c = self.swap(self.registers.c); self.pc = self.pc + 2;}
+                        ArithmeticTarget::D => {self.registers.d = self.swap(self.registers.d); self.pc = self.pc + 2;}
+                        ArithmeticTarget::E => {self.registers.e = self.swap(self.registers.e); self.pc = self.pc + 2;}
+                        ArithmeticTarget::H => {self.registers.h = self.swap(self.registers.h); self.pc = self.pc + 2;}
+                        ArithmeticTarget::L => {self.registers.l = self.swap(self.registers.l); self.pc = self.pc + 2;}
+                        ArithmeticTarget::HL => {self.bus.memory[self.registers.get_hl()] = self.swap(self.bus.read_byte(self.registers.get_hl())); self.pc = self.pc + 2;}
+                        ArithmeticTarget::U8 => {}
                     }
+                }
+                Instruction::DAA() =>
+                {
+                    self.daa();
                 }
             }
         }
@@ -1332,5 +1386,29 @@ impl CPU
             self.registers.f.half_carry = false;
             self.registers.f.carry = false;
             new_value
+        }
+    fn daa(&mut self) 
+        {
+            let mut correction: u8 = 0;
+    
+            if self.registers.f.half_carry || (self.registers.a & 0x0F) > 9 {
+                correction |= 0x06;
+            }
+    
+            if self.registers.f.carry || (self.a > 0x99) {
+                correction |= 0x60;
+                self.registers.f.carry = true;
+            } else {
+                self.registers.f.carry = false;
+            }
+    
+            if self.registers.f.subtract {
+                self.registers.a = self.registers.a.wrapping_sub(correction);
+            } else {
+                self.registers.a = self.registers.a.wrapping_add(correction);
+            }
+    
+            self.registers.f.half_carry = false;
+            self.registers.f.zero = self.a == 0;
         }
 }
