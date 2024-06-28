@@ -127,6 +127,7 @@ struct CPU
 {
     registers: Registers,
     pc: u16,
+    sp: u16,
     bus: MemoryBus
 }
 
@@ -463,7 +464,7 @@ impl Instruction
                     // 0xC8 => Some(Instruction::()),
                     // 0xC9 => Some(Instruction::()),
                     // 0xCA => Some(Instruction::()),
-                    // 0xCB => Some(Instruction::()),
+                    //0xCB => Some(Instruction::()),
                     // 0xCC => Some(Instruction::()),
                     // 0xCD => Some(Instruction::()),
                     0xCE => Some(Instruction::ADC(ArithmeticTarget::U8)),
