@@ -128,7 +128,10 @@ struct CPU
     registers: Registers,
     pc: u16,
     sp: u16,
-    bus: MemoryBus
+    bus: MemoryBus,
+    is_halted: bool,
+    ime: bool,
+    ime_scheduled: bool
 }
 
 struct MemoryBus
@@ -200,15 +203,33 @@ enum Instruction
     SWAP(ArithmeticTarget),
     DAA(),
     JP(JumpTest),
-    LD(LoadType)
+    LD(LoadType),
+    PUSH(ArithmeticTarget16),
+    POP(ArithmeticTarget16),
+    NOP(),
+    HALT(),
+    STOP(),
+    ADDSP(),
+    CALL(JumpTest),
+    RET(JumpTest),
+    JR(JumpTest),
+    JPHL(),
+    RST(RstTargets),
+    EI(),
+    DI(),
+    RETI()
 }
 enum ArithmeticTarget
 {
     A, B, C, D, E, H, L, HL, U8
 }
+enum RstTargets
+{
+    OOH, OBH, IOH, IBH, ZOH, ZBH, EOH, EBH 
+}
 enum ArithmeticTarget16
 {
-    HL, BC, DE, AF
+    HL, BC, DE, AF, SP
 }
 enum LoadByteTarget 
 {
@@ -233,15 +254,15 @@ enum LoadType
 }
 enum LoadWordTarget
 {
-    AF, HL, DE, BC, HLI
+    AF, HL, DE, BC, HLI, SP, I16
 }
 enum LoadWordSource
 {
-    AF, BC, DE, HL, D16, HLI
+    AF, BC, DE, HL, D16, HLI, SP, SP8
 }
 enum LoadByteAddress
 {
-    U8, C
+    U8, C, U16
 }
 enum JumpTest
 {
@@ -261,7 +282,7 @@ impl Instruction
         {
             match byte
                 {
-                    // 0x00 => Some(Instruction::()),
+                    0x00 => Some(Instruction::NOP()),
                     0x01 => Some(Instruction::LD(LoadType::Word(LoadWordTarget::BC, LoadWordSource::D16))),
                     0x02 => Some(Instruction::LD(LoadType::IndirectFromA(LoadByteIndirect::BC))),
                     0x03 => Some(Instruction::INC16(ArithmeticTarget16::BC)),
@@ -269,7 +290,7 @@ impl Instruction
                     0x05 => Some(Instruction::DEC8(ArithmeticTarget::B)),
                     0x06 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::B, LoadByteSource::D8))),
                     0x07 => Some(Instruction::RLCA()),
-                    // 0x08 => Some(Instruction::()),
+                    0x08 => Some(Instruction::LD(LoadType::Word(LoadWordTarget::I16, LoadWordSource::SP))),
                     0x09 => Some(Instruction::ADDHL(ArithmeticTarget16::BC)),
                     0x0A => Some(Instruction::LD(LoadType::AFromIndirect(LoadByteIndirect::BC))),
                     0x0B => Some(Instruction::DEC16(ArithmeticTarget16::BC)),
@@ -277,7 +298,7 @@ impl Instruction
                     0x0D => Some(Instruction::DEC8(ArithmeticTarget::C)),
                     0x0E => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::C, LoadByteSource::D8))),
                     0x0F => Some(Instruction::RRCA()),
-                    // 0x10 => Some(Instruction::()),
+                    0x10 => Some(Instruction::STOP()),
                     0x11 => Some(Instruction::LD(LoadType::Word(LoadWordTarget::DE, LoadWordSource::D16))),
                     0x12 => Some(Instruction::LD(LoadType::IndirectFromA(LoadByteIndirect::DE))),
                     0x13 => Some(Instruction::INC16(ArithmeticTarget16::DE)),
@@ -285,7 +306,7 @@ impl Instruction
                     0x15 => Some(Instruction::DEC8(ArithmeticTarget::D)),
                     0x16 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::D, LoadByteSource::D8))),
                     0x17 => Some(Instruction::RLA()),
-                    //0x18 => Some(Instruction::()),
+                    0x18 => Some(Instruction::JR(JumpTest::Always)),
                     0x19 => Some(Instruction::ADDHL(ArithmeticTarget16::DE)),
                     0x1A => Some(Instruction::LD(LoadType::AFromIndirect(LoadByteIndirect::DE))),
                     0x1B => Some(Instruction::DEC16(ArithmeticTarget16::DE)),
@@ -293,7 +314,7 @@ impl Instruction
                     0x1D => Some(Instruction::DEC8(ArithmeticTarget::E)),
                     0x1E => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::E, LoadByteSource::D8))),
                     0x1F => Some(Instruction::RRA()),
-                    // 0x20 => Some(Instruction::()),
+                    0x20 => Some(Instruction::JR(JumpTest::NotZero)),
                     0x21 => Some(Instruction::LD(LoadType::Word(LoadWordTarget::HL, LoadWordSource::D16))),
                     0x22 => Some(Instruction::LD(LoadType::IndirectFromA(LoadByteIndirect::HLP))),
                     0x23 => Some(Instruction::INC16(ArithmeticTarget16::HL)),
@@ -301,7 +322,7 @@ impl Instruction
                     0x25 => Some(Instruction::DEC8(ArithmeticTarget::H)),
                     0x26 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::H, LoadByteSource::D8))),
                     0x27 => Some(Instruction::DAA()),
-                    // 0x28 => Some(Instruction::()),
+                    0x28 => Some(Instruction::JR(JumpTest::Zero)),
                     0x29 => Some(Instruction::ADDHL(ArithmeticTarget16::HL)),
                     0x2A => Some(Instruction::LD(LoadType::AFromIndirect(LoadByteIndirect::HLP))),
                     0x2B => Some(Instruction::DEC16(ArithmeticTarget16::HL)),
@@ -309,18 +330,18 @@ impl Instruction
                     0x2D => Some(Instruction::DEC8(ArithmeticTarget::L)),
                     0x2E => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::L, LoadByteSource::D8))),
                     0x2F => Some(Instruction::CPL()),
-                    // 0x30 => Some(Instruction::()),
-                    // 0x31 => Some(Instruction::()),
+                    0x30 => Some(Instruction::JR(JumpTest::NotCarry)),
+                    0x31 => Some(Instruction::LD(LoadType::Word(LoadWordTarget::SP, LoadWordSource::D16))),
                     0x32 => Some(Instruction::LD(LoadType::IndirectFromA(LoadByteIndirect::HLN))),
-                    // 0x33 => Some(Instruction::()),
+                    0x33 => Some(Instruction::INC16(ArithmeticTarget16::SP)),
                     0x34 => Some(Instruction::INC8(ArithmeticTarget::HL)),
                     0x35 => Some(Instruction::INC8(ArithmeticTarget::HL)),
                     0x36 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::HLI, LoadByteSource::D8))),
                     0x37 => Some(Instruction::SCF()),
-                    // 0x38 => Some(Instruction::()),
-                    // 0x39 => Some(Instruction::()),
+                    0x38 => Some(Instruction::JR(JumpTest::Carry)),
+                    0x39 => Some(Instruction::ADDHL(ArithmeticTarget16::SP)),
                     0x3A => Some(Instruction::LD(LoadType::AFromIndirect(LoadByteIndirect::HLN))),
-                    // 0x3B => Some(Instruction::()),
+                    0x3B => Some(Instruction::DEC16(ArithmeticTarget16::SP)),
                     0x3C => Some(Instruction::INC8(ArithmeticTarget::A)),
                     0x3D => Some(Instruction::DEC8(ArithmeticTarget::A)),
                     0x3E => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::A, LoadByteSource::D8))),
@@ -379,7 +400,7 @@ impl Instruction
                     0x73 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::HLI, LoadByteSource::D))),
                     0x74 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::HLI, LoadByteSource::H))),
                     0x75 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::HLI, LoadByteSource::L))),
-                    //0x76 => ,
+                    0x76 => Some(Instruction::HALT()),
                     0x77 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::HLI, LoadByteSource::A))),
                     0x78 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::A, LoadByteSource::B))),
                     0x79 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::A, LoadByteSource::C))),
@@ -453,70 +474,70 @@ impl Instruction
                     0xBD => Some(Instruction::CP(ArithmeticTarget::L)),
                     0xBE => Some(Instruction::CP(ArithmeticTarget::HL)),
                     0xBF => Some(Instruction::CP(ArithmeticTarget::A)),
-                    // 0xC0 => Some(Instruction::()),
-                    // 0xC1 => Some(Instruction::()),
-                    // 0xC2 => Some(Instruction::()),
-                    // 0xC3 => Some(Instruction::()),
-                    // 0xC4 => Some(Instruction::()),
-                    // 0xC5 => Some(Instruction::()),
+                    0xC0 => Some(Instruction::RET(JumpTest::NotZero)),
+                    0xC1 => Some(Instruction::POP(ArithmeticTarget16::BC)),
+                    0xC2 => Some(Instruction::JP(JumpTest::NotZero)),
+                    0xC3 => Some(Instruction::JP(JumpTest::Always)),
+                    0xC4 => Some(Instruction::CALL(JumpTest::NotZero)),
+                    0xC5 => Some(Instruction::PUSH(ArithmeticTarget16::BC)),
                     0xC6 => Some(Instruction::ADD(ArithmeticTarget::U8)),
-                    // 0xC7 => Some(Instruction::()),
-                    // 0xC8 => Some(Instruction::()),
-                    // 0xC9 => Some(Instruction::()),
-                    // 0xCA => Some(Instruction::()),
-                    //0xCB => Some(Instruction::()),
-                    // 0xCC => Some(Instruction::()),
-                    // 0xCD => Some(Instruction::()),
+                    0xC7 => Some(Instruction::RST(RstTargets::OOH)),
+                    0xC8 => Some(Instruction::RET(JumpTest::Zero)),
+                    0xC9 => Some(Instruction::RET(JumpTest::Always)),
+                    0xCA => Some(Instruction::JP(JumpTest::Zero)),
+                    0xCB => Some(Instruction::NOP()),
+                    0xCC => Some(Instruction::CALL(JumpTest::Zero)),
+                    0xCD => Some(Instruction::CALL(JumpTest::Always)),
                     0xCE => Some(Instruction::ADC(ArithmeticTarget::U8)),
-                    // 0xCF => Some(Instruction::()),
-                    // 0xD0 => Some(Instruction::()),
-                    // 0xD1 => Some(Instruction::()),
-                    // 0xD2 => Some(Instruction::()),
-                    // 0xD3 => Some(Instruction::()),
-                    // 0xD4 => Some(Instruction::()),
-                    // 0xD5 => Some(Instruction::()),
+                    0xCF => Some(Instruction::RST(RstTargets::OBH)),
+                    0xD0 => Some(Instruction::RET(JumpTest::NotCarry)),
+                    0xD1 => Some(Instruction::POP(ArithmeticTarget16::DE)),
+                    0xD2 => Some(Instruction::JP(JumpTest::NotCarry)),
+                    0xD3 => Some(Instruction::NOP()),
+                    0xD4 => Some(Instruction::CALL(JumpTest::NotCarry)),
+                    0xD5 => Some(Instruction::PUSH(ArithmeticTarget16::DE)),
                     0xD6 => Some(Instruction::SUB(ArithmeticTarget::U8)),
-                    // 0xD7 => Some(Instruction::()),
-                    // 0xD8 => Some(Instruction::()),
-                    // 0xD9 => Some(Instruction::()),
-                    // 0xDA => Some(Instruction::()),
-                    // 0xDB => Some(Instruction::()),
-                    // 0xDC => Some(Instruction::()),
-                    // 0xDD => Some(Instruction::()),
+                    0xD7 => Some(Instruction::RST(RstTargets::IOH)),
+                    0xD8 => Some(Instruction::RET(JumpTest::Carry)),
+                    0xD9 => Some(Instruction::RETI()),
+                    0xDA => Some(Instruction::JP(JumpTest::Carry)),
+                    0xDB => Some(Instruction::NOP()),
+                    0xDC => Some(Instruction::CALL(JumpTest::Carry)),
+                    0xDD => Some(Instruction::NOP()),
                     0xDE => Some(Instruction::SBC(ArithmeticTarget::U8)),
-                    // 0xDF => Some(Instruction::()),
-                    // 0xE0 => Some(Instruction::()),
-                    // 0xE1 => Some(Instruction::()),
-                    // 0xE2 => Some(Instruction::()),
-                    // 0xE3 => Some(Instruction::()),
-                    // 0xE4 => Some(Instruction::()),
-                    // 0xE5 => Some(Instruction::()),
+                    0xDF => Some(Instruction::RST(RstTargets::IBH)),
+                    0xE0 => Some(Instruction::LD(LoadType::ByteAddressFromA(LoadByteAddress::U8))),
+                    0xE1 => Some(Instruction::POP(ArithmeticTarget16::HL)),
+                    0xE2 => Some(Instruction::LD(LoadType::ByteAddressFromA(LoadByteAddress::C))),
+                    0xE3 => Some(Instruction::NOP()),
+                    0xE4 => Some(Instruction::NOP()),
+                    0xE5 => Some(Instruction::PUSH(ArithmeticTarget16::HL)),
                     0xE6 => Some(Instruction::AND(ArithmeticTarget::U8)),
-                    // 0xE7 => Some(Instruction::()),
-                    // 0xE8 => Some(Instruction::()),
-                    // 0xE9 => Some(Instruction::()),
-                    // 0xEA => Some(Instruction::()),
-                    // 0xEB => Some(Instruction::()),
-                    // 0xEC => Some(Instruction::()),
-                    // 0xED => Some(Instruction::()),
+                    0xE7 => Some(Instruction::RST(RstTargets::ZOH)),
+                    0xE8 => Some(Instruction::ADDSP()),
+                    0xE9 => Some(Instruction::JPHL()),
+                    0xEA => Some(Instruction::LD(LoadType::ByteAddressFromA(LoadByteAddress::U16))),
+                    0xEB => Some(Instruction::NOP()),
+                    0xEC => Some(Instruction::NOP()),
+                    0xED => Some(Instruction::NOP()),
                     0xEE => Some(Instruction::XOR(ArithmeticTarget::U8)),
-                    // 0xEF => Some(Instruction::()),
-                    // 0xF0 => Some(Instruction::()),
-                    // 0xF1 => Some(Instruction::()),
-                    // 0xF2 => Some(Instruction::()),
-                    // 0xF3 => Some(Instruction::()),
-                    // 0xF4 => Some(Instruction::()),
-                    // 0xF5 => Some(Instruction::()),
+                    0xEF => Some(Instruction::RST(RstTargets::ZBH)),
+                    0xF0 => Some(Instruction::LD(LoadType::AFromByteAddress(LoadByteAddress::U8))),
+                    0xF1 => Some(Instruction::POP(ArithmeticTarget16::AF)),
+                    0xF2 => Some(Instruction::LD(LoadType::AFromByteAddress(LoadByteAddress::C))),
+                    0xF3 => Some(Instruction::DI()),
+                    0xF4 => Some(Instruction::NOP()),
+                    0xF5 => Some(Instruction::PUSH(ArithmeticTarget16::AF)),
                     0xF6 => Some(Instruction::OR(ArithmeticTarget::U8)),
-                    // 0xF7 => Some(Instruction::()),
-                    // 0xF8 => Some(Instruction::()),
-                    // 0xF9 => Some(Instruction::()),
-                    // 0xFA => Some(Instruction::()),
-                    // 0xFB => Some(Instruction::()),
-                    // 0xFC => Some(Instruction::()),
-                    // 0xFD => Some(Instruction::()),
+                    0xF7 => Some(Instruction::RST(RstTargets::EOH)),
+                    0xF8 => Some(Instruction::LD(LoadType::Word(LoadWordTarget::HL, LoadWordSource::SP8))),
+                    0xF9 => Some(Instruction::LD(LoadType::Word(LoadWordTarget::SP, LoadWordSource::HL))),
+                    0xFA => Some(Instruction::LD(LoadType::AFromByteAddress(LoadByteAddress::U16))),
+                    0xFB => Some(Instruction::EI()),
+                    0xFC => Some(Instruction::NOP()),
+                    0xFD => Some(Instruction::NOP()),
                     0xFE => Some(Instruction::CP(ArithmeticTarget::U8)),
-                    // 0xFF => Some(Instruction::())
+                    0xFF => Some(Instruction::RST(RstTargets::EBH))
                 }
         }
 
@@ -811,12 +832,13 @@ impl CPU
               let description = format!("0x{}{:x}", if prefixed { "cb" } else { "" }, instruction_byte);
               panic!("Unkown instruction found for: {}", description)
             };
-        
+            self.after_instruction();
             self.pc = next_pc;
           }
-
     fn execute(&mut self, instruction: Instruction) -> u16
         {
+            if self.is_halted {self.pc}
+            else{
             match instruction
             {
                 Instruction::ADD(target) => 
@@ -842,6 +864,7 @@ impl CPU
                         ArithmeticTarget16::BC => {let bc = self.registers.get_bc(); let result = self.addhl(bc); self.registers.set_hl(result); self.pc.wrapping_add(1)}
                         ArithmeticTarget16::DE => {let de = self.registers.get_de(); let result = self.addhl(de); self.registers.set_hl(result); self.pc.wrapping_add(1)}
                         ArithmeticTarget16::HL => {let hl = self.registers.get_hl(); let result = self.addhl(hl); self.registers.set_hl(result); self.pc.wrapping_add(1)}
+                        ArithmeticTarget16::SP => {let result = self.addhl(self.sp); self.registers.set_hl(result); self.pc.wrapping_add(1)}
                     }
                 }
                 Instruction::ADC(target) =>
@@ -972,6 +995,7 @@ impl CPU
                         ArithmeticTarget16::BC => {let bc = self.registers.get_bc(); let result = self.inc_16(bc); self.registers.set_bc(result); self.pc.wrapping_add(1)}
                         ArithmeticTarget16::DE => {let de = self.registers.get_de(); let result = self.inc_16(de); self.registers.set_de(result); self.pc.wrapping_add(1)}
                         ArithmeticTarget16::HL => {let hl = self.registers.get_hl(); let result = self.inc_16(hl); self.registers.set_hl(result); self.pc.wrapping_add(1)}
+                        ArithmeticTarget16::SP => {let result = self.inc_16(self.sp); self.sp = result; self.pc.wrapping_add(1)}
                     }
                 }
                 Instruction::DEC8(target) =>
@@ -997,6 +1021,7 @@ impl CPU
                         ArithmeticTarget16::BC => {let bc = self.registers.get_bc(); let result = self.dec_16(bc); self.registers.set_bc(result); self.pc.wrapping_add(1)}
                         ArithmeticTarget16::DE => {let de = self.registers.get_de(); let result = self.dec_16(de); self.registers.set_de(result); self.pc.wrapping_add(1)}
                         ArithmeticTarget16::HL => {let hl = self.registers.get_hl(); let result = self.dec_16(hl); self.registers.set_hl(result); self.pc.wrapping_add(1)}
+                        ArithmeticTarget16::SP => {let result = self.dec_16(self.sp); self.sp = result; self.pc.wrapping_add(1)}
                     }
                 }
                 Instruction::CCF() =>
@@ -1260,7 +1285,9 @@ impl CPU
                                     LoadWordSource::DE => self.registers.get_de(),
                                     LoadWordSource::HL => self.registers.get_hl(),
                                     LoadWordSource::D16 => self.read_next_word(),
-                                    LoadWordSource::HLI => self.bus.read_word(self.registers.get_hl())
+                                    LoadWordSource::HLI => self.bus.read_word(self.registers.get_hl()),
+                                    LoadWordSource::SP => self.sp,
+                                    LoadWordSource::SP8 => self.addsp(),
                                 };
                                 match target
                                 {
@@ -1268,13 +1295,16 @@ impl CPU
                                     LoadWordTarget::BC => self.registers.set_bc(source_value),
                                     LoadWordTarget::DE => self.registers.set_de(source_value),
                                     LoadWordTarget::HL => self.registers.set_hl(source_value),
-                                    LoadWordTarget::HLI => self.bus.write_word(self.registers.get_hl(), source_value)
+                                    LoadWordTarget::HLI => self.bus.write_word(self.registers.get_hl(), source_value),
+                                    LoadWordTarget::SP => self.sp = source_value,
+                                    LoadWordTarget::I16 => {let address = self.bus.read_word(self.pc.wrapping_add(1)); self.bus.write_word(address, source_value);},
                                 };
-                                match source
-                                {
-                                    LoadWordSource::D16 => self.pc.wrapping_add(3),
-                                    _                   => self.pc.wrapping_add(2),
-                                }
+                                if let LoadWordSource::D16 = source
+                                {self.pc.wrapping_add(3)}
+                                else if let LoadWordTarget::I16 = target
+                                {self.pc.wrapping_add(3)}
+                                else
+                                {self.pc.wrapping_add(1)}
                             }
                         LoadType::AFromIndirect(source) =>
                             {
@@ -1304,9 +1334,11 @@ impl CPU
                                 {
                                     LoadByteAddress::C => self.registers.a = self.bus.read_byte(0xFF00 | (self.registers.c as u16)),
                                     LoadByteAddress::U8 => {let byte = self.bus.read_byte(self.pc + 1); self.registers.a = self.bus.read_byte(0xFF00 | byte as u16);}
+                                    LoadByteAddress::U16 => {let add = self.read_next_word(); self.registers.a = self.bus.read_byte(add);},
                                 }
                                 match source
                                 {
+                                    LoadByteAddress::U16 => self.pc + 3,
                                     LoadByteAddress::C => self.pc + 1,
                                     _                  => self.pc + 2
                                 }
@@ -1315,17 +1347,133 @@ impl CPU
                             {
                                 match target
                                 {
-                                    LoadByteAddress::C => self.bus.write_byte((0xFF00 | self.registers.c as u16), self.registers.a),
-                                    LoadByteAddress::U8 => {let byte = self.bus.read_byte(self.pc + 1); self.bus.write_byte((0xFF00 | byte as u16), self.registers.a);}
+                                    LoadByteAddress::C => self.bus.write_byte(0xFF00 | self.registers.c as u16, self.registers.a),
+                                    LoadByteAddress::U8 => {let byte = self.bus.read_byte(self.pc + 1); self.bus.write_byte(0xFF00 | byte as u16, self.registers.a);}
+                                    LoadByteAddress::U16 => {let add = self.read_next_word(); self.bus.write_byte(add, self.registers.a)},
                                 }
                                 match target
                                 {
                                     LoadByteAddress::C => self.pc + 1,
+                                    LoadByteAddress::U16 => self.pc + 3,
                                     _                  => self.pc + 2
                                 }
                             }
                     }
                 }
+                Instruction::PUSH(source) =>
+                {
+                    match source
+                    {
+                        ArithmeticTarget16::AF => {let value = self.registers.get_af(); self.push(value)},
+                        ArithmeticTarget16::BC => {let value = self.registers.get_bc(); self.push(value)},
+                        ArithmeticTarget16::DE => {let value = self.registers.get_de(); self.push(value)},
+                        ArithmeticTarget16::HL => {let value = self.registers.get_hl(); self.push(value)},
+                        ArithmeticTarget16::SP => {}
+                    }
+                    self.pc.wrapping_add(1)
+                }
+                Instruction::POP(target) =>
+                {
+                    match target
+                    {
+                        ArithmeticTarget16::AF => {let value = self.pop(); self.registers.set_af(value)},
+                        ArithmeticTarget16::BC => {let value = self.pop(); self.registers.set_bc(value)},
+                        ArithmeticTarget16::DE => {let value = self.pop(); self.registers.set_de(value)},
+                        ArithmeticTarget16::HL => {let value = self.pop(); self.registers.set_hl(value)},
+                        ArithmeticTarget16::SP => {}
+                    }
+                    self.pc.wrapping_add(1)
+                }
+                Instruction::NOP() =>
+                {
+                    self.pc.wrapping_add(1)
+                }
+                Instruction::HALT() =>
+                {
+                    self.is_halted = true;
+                    self.pc.wrapping_add(1)
+                }
+                Instruction::STOP() =>
+                {
+                    self.pc.wrapping_add(2)
+                }
+                Instruction::ADDSP() =>
+                {
+                       self.sp = self.addsp();
+                       self.pc.wrapping_add(2)
+                }
+                Instruction::CALL(test) =>
+                {
+                    let jump_condition = match test
+                    {
+                        JumpTest::Always => true,
+                        JumpTest::Carry => self.registers.f.carry,
+                        JumpTest::NotCarry => !self.registers.f.carry,
+                        JumpTest::NotZero => !self.registers.f.zero,
+                        JumpTest::Zero => self.registers.f.zero,
+                    };
+                    self.call(jump_condition)
+                }
+                Instruction::RET(test) =>
+                {
+                    let jump_condition = match test
+                    {
+                        JumpTest::Always => true,
+                        JumpTest::Carry => self.registers.f.carry,
+                        JumpTest::NotCarry => !self.registers.f.carry,
+                        JumpTest::NotZero => !self.registers.f.zero,
+                        JumpTest::Zero => self.registers.f.zero,
+                    };
+                    self.return_(jump_condition)
+                }
+                Instruction::JR(test) =>
+                {
+                let jump_condition = match test
+                    {
+                        JumpTest::Always => true,
+                        JumpTest::Carry => self.registers.f.carry,
+                        JumpTest::NotCarry => !self.registers.f.carry,
+                        JumpTest::NotZero => !self.registers.f.zero,
+                        JumpTest::Zero => self.registers.f.zero,
+                    };
+                    self.jr(jump_condition)
+                }
+                Instruction::JPHL() =>
+                {
+                    self.registers.get_hl()
+                }
+                Instruction::RST(target) =>
+                {
+                    let add: u16 = match target
+                    {
+                        RstTargets::OOH => 0x0000,
+                        RstTargets::OBH => 0x0008,
+                        RstTargets::IOH => 0x0010,
+                        RstTargets::IBH => 0x0018,
+                        RstTargets::ZOH => 0x0020,
+                        RstTargets::ZBH => 0x0028,
+                        RstTargets::EOH => 0x0030,
+                        RstTargets::EBH => 0x0038,
+                    };
+                    add
+                }
+                Instruction::EI() =>
+                {
+                    self.ei();
+                    self.pc.wrapping_add(1)
+                }
+                Instruction::DI() =>
+                {
+                    self.di();
+                    self.pc.wrapping_add(1)
+                }
+                Instruction::RETI() =>
+                {
+                    self.ei();
+                    self.return_(true);
+                    self.pc.wrapping_add(1)
+                }
+            }
             }
         }
     fn add(&mut self, value: u8) -> u8
@@ -1617,18 +1765,107 @@ impl CPU
             self.registers.f.half_carry = false;
             self.registers.f.zero = self.registers.a == 0;
         }
-    fn jump(&mut self, should_jump: bool) -> u16 {
-        if should_jump {
-          // Gameboy is little endian so read pc + 2 as most significant bit
-          // and pc + 1 as least significant bit
-          let least_significant_byte = self.bus.read_byte(self.pc + 1) as u16;
-          let most_significant_byte = self.bus.read_byte(self.pc + 2) as u16;
-          (most_significant_byte << 8) | least_significant_byte
-        } else {
-          // If we don't jump we need to still move the program
-          // counter forward by 3 since the jump instruction is
-          // 3 bytes wide (1 byte for tag and 2 bytes for jump address)
-          self.pc.wrapping_add(3)
+    fn jump(&mut self, should_jump: bool) -> u16 
+        {
+            if should_jump 
+            {
+              // Gameboy is little endian so read pc + 2 as most significant bit
+              // and pc + 1 as least significant bit
+              let least_significant_byte = self.bus.read_byte(self.pc + 1) as u16;
+              let most_significant_byte = self.bus.read_byte(self.pc + 2) as u16;
+              (most_significant_byte << 8) | least_significant_byte
+            } 
+            else 
+            {
+              // If we don't jump we need to still move the program
+              // counter forward by 3 since the jump instruction is
+              // 3 bytes wide (1 byte for tag and 2 bytes for jump address)
+              self.pc.wrapping_add(3)
+            }
         }
-      }
+    fn push(&mut self, value: u16)
+        {
+            self.sp = self.sp.wrapping_sub(1);
+            self.bus.write_byte(self.sp, ((value & 0xFF00) >> 8) as u8);
+
+            self.sp = self.sp.wrapping_sub(1);
+            self.bus.write_byte(self.sp, (value & 0xFF) as u8);
+        }
+    fn pop(&mut self) -> u16
+        {
+            let lo = self.bus.read_byte(self.sp) as u16;
+            self.sp.wrapping_add(1);
+            let hi = (self.bus.read_byte(self.sp) as u16) << 8;
+            self.sp.wrapping_add(1);
+            hi | lo
+        }
+    fn addsp(&mut self) -> u16
+        {
+            // Convert the signed integer to an unsigned integer for addition
+            let sp_before = self.sp as i32; // Convert to a larger type to prevent overflow
+            let value_i32 = (self.read_next_byte() as i8) as i32;
+            let sp_after = sp_before.wrapping_add(value_i32);
+
+            // Optionally, update flags based on the result (example)
+            self.registers.f.zero = self.sp == 0;
+            self.registers.f.subtract = false;
+            self.registers.f.half_carry = (sp_before ^ value_i32 ^ sp_after) & 0x10 != 0;
+            self.registers.f.carry = sp_after > 0xFFFF;
+            sp_after as u16
+        }
+    fn call(&mut self, should_jump: bool) -> u16 
+        {
+            let next_pc = self.pc.wrapping_add(3);
+            if should_jump 
+            {
+                self.push(next_pc);
+                self.read_next_word()
+            } 
+            else 
+            {
+              next_pc
+            }
+        }
+    fn return_(&mut self, should_jump: bool) -> u16 
+        {
+            if should_jump 
+            {
+                self.pop()
+            } 
+            else 
+            {
+                self.pc.wrapping_add(1)
+            }
+        }
+    fn jr(&mut self, should_jump: bool) -> u16
+        {
+            let offset = self.read_next_byte() as i8; // Fetch the signed 8-bit offset
+            if should_jump
+            {
+                let pc_before = self.pc as i32;
+                let new_pc = pc_before.wrapping_add(offset as i32);
+                new_pc as u16
+            }
+            // Increment the program counter if the jump is not taken
+            else 
+            {
+                self.pc.wrapping_add(2)
+            }
+        }
+    fn ei(&mut self) 
+        {
+            self.ime_scheduled = true;
+        }
+    fn di(&mut self) 
+        {
+            self.ime = false;
+        }
+    fn after_instruction(&mut self) 
+        {
+            if self.ime_scheduled 
+            {
+                self.ime = true;
+                self.ime_scheduled = false;
+            }
+        }
 }
