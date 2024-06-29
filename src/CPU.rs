@@ -123,7 +123,7 @@ impl std::convert::From<&FlagsRegister> for u8 {
     }
 }
 
-struct CPU
+pub struct CPU
 {
     registers: Registers,
     pc: u16,
@@ -131,10 +131,11 @@ struct CPU
     bus: MemoryBus,
     is_halted: bool,
     ime: bool,
-    ime_scheduled: bool
+    ime_scheduled: bool,
+    stopped: bool
 }
 
-struct MemoryBus
+pub struct MemoryBus
 {
     memory: [u8; 0xFFFF]
 }
@@ -1395,6 +1396,7 @@ impl CPU
                 }
                 Instruction::STOP() =>
                 {
+                    self.stopped = true;
                     self.pc.wrapping_add(2)
                 }
                 Instruction::ADDSP() =>
