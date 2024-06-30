@@ -1,3 +1,6 @@
+use crate::Memory;
+use Memory::MemoryBus;
+
 //Defines register structure
 pub struct Registers {
     a: u8,
@@ -135,39 +138,6 @@ pub struct CPU
     stopped: bool
 }
 
-pub struct MemoryBus
-{
-    memory: [u8; 0xFFFF]
-}
-
-impl MemoryBus
-{
-    fn read_byte(&mut self, address: u16) -> u8
-    {
-        self.memory[address as usize]
-    }
-
-    fn read_word(&mut self, address: u16) -> u16
-    {
-        let lo = self.read_byte(address) as u16;
-        let hi = (self.read_byte(address + 1) << 8) as u16;
-        let word = lo | hi;
-        word
-    }
-
-    fn write_byte(&mut self, address: u16, value: u8)
-    {
-        self.memory[address as usize] = value;
-    }
-
-    fn write_word(&mut self, address: u16, value: u16)
-    {
-        let lo = (value & 0x00FF) as u8;
-        let hi = ((value & 0xFF00) >> 8) as u8;
-        self.memory[address as usize] = lo;
-        self.memory[(address + 1) as usize] = hi;
-    }
-}
 
 enum Instruction
 {
@@ -1796,9 +1766,9 @@ impl CPU
     fn pop(&mut self) -> u16
         {
             let lo = self.bus.read_byte(self.sp) as u16;
-            self.sp.wrapping_add(1);
+            self.sp = self.sp.wrapping_add(1);
             let hi = (self.bus.read_byte(self.sp) as u16) << 8;
-            self.sp.wrapping_add(1);
+            self.sp = self.sp.wrapping_add(1);
             hi | lo
         }
     fn addsp(&mut self) -> u16
