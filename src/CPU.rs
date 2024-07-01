@@ -778,6 +778,20 @@ impl Instruction
 
 impl CPU
 {
+    fn new(&mut self) -> CPU
+        {
+            CPU 
+            { 
+                registers: Registers::default(),
+                pc: 0x0000,
+                sp: 0x0000,
+                bus: MemoryBus::,
+                is_halted: false, 
+                ime: false,
+                ime_scheduled: false,
+                stopped: false
+            }
+        }
     fn read_next_byte(&mut self) -> u8
         {
             self.bus.memory[(self.pc + 1) as usize]

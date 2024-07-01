@@ -1,8 +1,6 @@
 pub mod CPU;
 pub mod Memory;
+pub mod PPU;
 fn main() 
-    {
-        let cpu_: CPU::CPU;
-
-        
+    {   
     }
