@@ -778,14 +778,14 @@ impl Instruction
 
 impl CPU
 {
-    fn new(&mut self) -> CPU
+    pub fn new(boot_rom: Vec<u8>, game_rom:Vec<u8>) -> CPU
         {
             CPU 
             { 
                 registers: Registers::default(),
                 pc: 0x0000,
                 sp: 0x0000,
-                bus: MemoryBus::,
+                bus: MemoryBus::new(boot_rom, game_rom),
                 is_halted: false, 
                 ime: false,
                 ime_scheduled: false,
@@ -794,7 +794,7 @@ impl CPU
         }
     fn read_next_byte(&mut self) -> u8
         {
-            self.bus.memory[(self.pc + 1) as usize]
+            self.bus.read_byte(self.pc + 1)
         }
     fn read_next_word(&mut self) -> u16
         {
@@ -968,7 +968,7 @@ impl CPU
                         ArithmeticTarget::E => {self.registers.e = self.inc_8(self.registers.e); self.pc.wrapping_add(1)}
                         ArithmeticTarget::H => {self.registers.h = self.inc_8(self.registers.h); self.pc.wrapping_add(1)}
                         ArithmeticTarget::L => {self.registers.l = self.inc_8(self.registers.l); self.pc.wrapping_add(1)}
-                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.inc_8(byte); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); let new_byte = self.inc_8(byte); self.bus.write_byte(self.registers.get_hl(), new_byte); self.pc.wrapping_add(1)}
                         ArithmeticTarget::U8 => {self.pc}
                     }
                 }
@@ -994,7 +994,7 @@ impl CPU
                         ArithmeticTarget::E => {self.registers.e = self.dec_8(self.registers.e); self.pc.wrapping_add(1)}
                         ArithmeticTarget::H => {self.registers.h = self.dec_8(self.registers.h); self.pc.wrapping_add(1)}
                         ArithmeticTarget::L => {self.registers.l = self.dec_8(self.registers.l); self.pc.wrapping_add(1)}
-                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.dec_8(byte); self.pc.wrapping_add(1)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); let new_byte = self.dec_8(byte); self.bus.write_byte(self.registers.get_hl(), new_byte); self.pc.wrapping_add(1)}
                         ArithmeticTarget::U8 => {self.pc}
                     }
                 }
@@ -1070,7 +1070,7 @@ impl CPU
                         ArithmeticTarget::E => {self.registers.e = self.res(bit, self.registers.e); self.pc.wrapping_add(2)}
                         ArithmeticTarget::H => {self.registers.h = self.res(bit, self.registers.h); self.pc.wrapping_add(2)}
                         ArithmeticTarget::L => {self.registers.l = self.res(bit, self.registers.l); self.pc.wrapping_add(2)}
-                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.res(bit, byte); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); let new_byte = self.res(bit, byte); self.bus.write_byte(self.registers.get_hl(), new_byte); self.pc.wrapping_add(2)}
                         ArithmeticTarget::U8 => {self.pc}    
                     }
                 }
@@ -1085,7 +1085,7 @@ impl CPU
                         ArithmeticTarget::E => {self.registers.e = self.set(bit, self.registers.e); self.pc.wrapping_add(2)}
                         ArithmeticTarget::H => {self.registers.h = self.set(bit, self.registers.h); self.pc.wrapping_add(2)}
                         ArithmeticTarget::L => {self.registers.l = self.set(bit, self.registers.l); self.pc.wrapping_add(2)}
-                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.set(bit, byte); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); let new_byte = self.set(bit, byte); self.bus.write_byte(self.registers.get_hl(), new_byte); self.pc.wrapping_add(2)}
                         ArithmeticTarget::U8 => {self.pc}    
                     }
                 }
@@ -1100,7 +1100,7 @@ impl CPU
                         ArithmeticTarget::E => {self.registers.e = self.srl(self.registers.e); self.pc.wrapping_add(2)}
                         ArithmeticTarget::H => {self.registers.h = self.srl(self.registers.h); self.pc.wrapping_add(2)}
                         ArithmeticTarget::L => {self.registers.l = self.srl(self.registers.l); self.pc.wrapping_add(2)}
-                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.srl(byte); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); let new_byte = self.srl(byte); self.bus.write_byte(self.registers.get_hl(), new_byte); self.pc.wrapping_add(2)}
                         ArithmeticTarget::U8 => {self.pc}
                     }
                 }
@@ -1115,7 +1115,7 @@ impl CPU
                         ArithmeticTarget::E => {self.registers.e = self.rr(self.registers.e); self.pc.wrapping_add(2)}
                         ArithmeticTarget::H => {self.registers.h = self.rr(self.registers.h); self.pc.wrapping_add(2)}
                         ArithmeticTarget::L => {self.registers.l = self.rr(self.registers.l); self.pc.wrapping_add(2)}
-                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.rr(byte); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); let new_byte = self.rr(byte); self.bus.write_byte(self.registers.get_hl(), new_byte); self.pc.wrapping_add(2)}
                         ArithmeticTarget::U8 => {self.pc}
                     }
                 }
@@ -1130,7 +1130,7 @@ impl CPU
                         ArithmeticTarget::E => {self.registers.e = self.rl(self.registers.e); self.pc.wrapping_add(2)}
                         ArithmeticTarget::H => {self.registers.h = self.rl(self.registers.h); self.pc.wrapping_add(2)}
                         ArithmeticTarget::L => {self.registers.l = self.rl(self.registers.l); self.pc.wrapping_add(2)}
-                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.rl(byte); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); let new_byte = self.rl(byte); self.bus.write_byte(self.registers.get_hl(), new_byte); self.pc.wrapping_add(2)}
                         ArithmeticTarget::U8 => {self.pc}
                     }
                 }
@@ -1145,7 +1145,7 @@ impl CPU
                         ArithmeticTarget::E => {self.registers.e = self.rrc(self.registers.e); self.pc.wrapping_add(2)}
                         ArithmeticTarget::H => {self.registers.h = self.rrc(self.registers.h); self.pc.wrapping_add(2)}
                         ArithmeticTarget::L => {self.registers.l = self.rrc(self.registers.l); self.pc.wrapping_add(2)}
-                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.rrc(byte); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); let new_byte = self.rrc(byte); self.bus.write_byte(self.registers.get_hl(), new_byte); self.pc.wrapping_add(2)}
                         ArithmeticTarget::U8 => {self.pc}
                     }
                 }
@@ -1160,7 +1160,7 @@ impl CPU
                         ArithmeticTarget::E => {self.registers.e = self.rlc(self.registers.e); self.pc.wrapping_add(2)}
                         ArithmeticTarget::H => {self.registers.h = self.rlc(self.registers.h); self.pc.wrapping_add(2)}
                         ArithmeticTarget::L => {self.registers.l = self.rlc(self.registers.l); self.pc.wrapping_add(2)}
-                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.rlc(byte); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); let new_byte = self.rlc(byte); self.bus.write_byte(self.registers.get_hl(), new_byte); self.pc.wrapping_add(2)}
                         ArithmeticTarget::U8 => {self.pc}
                     }
                 }
@@ -1175,7 +1175,7 @@ impl CPU
                         ArithmeticTarget::E => {self.registers.e = self.sra(self.registers.e); self.pc.wrapping_add(2)}
                         ArithmeticTarget::H => {self.registers.h = self.sra(self.registers.h); self.pc.wrapping_add(2)}
                         ArithmeticTarget::L => {self.registers.l = self.sra(self.registers.l); self.pc.wrapping_add(2)}
-                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.sra(byte); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); let new_byte = self.sra(byte); self.bus.write_byte(self.registers.get_hl(), new_byte); self.pc.wrapping_add(2)}
                         ArithmeticTarget::U8 => {self.pc}
                     }
                 }
@@ -1190,7 +1190,7 @@ impl CPU
                         ArithmeticTarget::E => {self.registers.e = self.sla(self.registers.e); self.pc.wrapping_add(2)}
                         ArithmeticTarget::H => {self.registers.h = self.sla(self.registers.h); self.pc.wrapping_add(2)}
                         ArithmeticTarget::L => {self.registers.l = self.sla(self.registers.l); self.pc.wrapping_add(2)}
-                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.sla(byte); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); let new_byte = self.sla(byte); self.bus.write_byte(self.registers.get_hl(), new_byte); self.pc.wrapping_add(2)}
                         ArithmeticTarget::U8 => {self.pc}
                     }
                 }
@@ -1205,7 +1205,7 @@ impl CPU
                         ArithmeticTarget::E => {self.registers.e = self.swap(self.registers.e); self.pc.wrapping_add(2)}
                         ArithmeticTarget::H => {self.registers.h = self.swap(self.registers.h); self.pc.wrapping_add(2)}
                         ArithmeticTarget::L => {self.registers.l = self.swap(self.registers.l); self.pc.wrapping_add(2)}
-                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); self.bus.memory[self.registers.get_hl() as usize] = self.swap(byte); self.pc.wrapping_add(2)}
+                        ArithmeticTarget::HL => {let byte = self.bus.read_byte(self.registers.get_hl()); let new_byte = self.swap(byte); self.bus.write_byte(self.registers.get_hl(), new_byte); self.pc.wrapping_add(2)}
                         ArithmeticTarget::U8 => {self.pc}
                     }
                 }
