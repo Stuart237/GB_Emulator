@@ -817,9 +817,45 @@ impl CPU
               let description = format!("0x{}{:x}", if prefixed { "cb" } else { "" }, instruction_byte);
               panic!("Unkown instruction found for: {}", description)
             };
+            if self.ime
+            {
+                self.check_interrupt();
+            }
             self.after_instruction();
             self.pc = next_pc;
           }
+    fn check_interrupt(&mut self)
+    {
+        let pending_interrupts: u8 = self.bus.interrupt_flag.to_byte() & self.bus.interrupt_register.to_byte();
+        if pending_interrupts & 0x1 != 0
+        {
+            self.handle_interrupt(0x0040, 0);
+        }
+        else if pending_interrupts & 0x2 != 0 
+        {
+            self.handle_interrupt(0x0048, 1);
+        }
+        else if pending_interrupts & 0x4 != 0 
+        {
+            self.handle_interrupt(0x0050, 2);
+        }
+        else if pending_interrupts & 0x8 != 0 
+        {
+            self.handle_interrupt(0x0058, 3);
+        }
+        else if pending_interrupts & 0x10 != 0 
+        {
+            self.handle_interrupt(0x0060, 4);
+        }
+    }
+    fn handle_interrupt(&mut self, address: usize, bit: u8)
+    {
+        self.ime = false;
+        let new_interrupt = self.bus.interrupt_flag.to_byte() & !(1 << bit);
+        self.bus.interrupt_flag.from_byte(new_interrupt);
+        self.sp = self.sp.wrapping_sub(2);
+        self.bus.write_word(self.sp, self.pc);
+    }
     fn execute(&mut self, instruction: Instruction) -> u16
         {
             if self.is_halted {self.pc}

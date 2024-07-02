@@ -57,6 +57,19 @@ enum TilePixelValue
     Three
 }
 type Tile = [[TilePixelValue; 8]; 8];
+enum ObjectPalette
+{
+    Zero, One
+}
+struct Object
+{
+    x: i16,
+    y: i16,
+    tile: u8,
+    x_flip: bool,
+    y_flip: bool,
+    pallette: ObjectPalette
+}
 
 fn empty_tile() -> Tile
 {
@@ -66,6 +79,7 @@ pub const VRAM_SIZE: usize = 0x2000;
 pub const TILE_COUNT: usize = 384;
 pub const SCREEN_WIDTH: usize = 160;
 pub const SCREEN_HEIGHT: usize = 144;
+pub const NUMBER_OF_OBJECTS: u8 = 40;
 pub struct PPU
 {
     vram: [u8; VRAM_SIZE],

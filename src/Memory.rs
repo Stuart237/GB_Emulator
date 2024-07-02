@@ -11,7 +11,6 @@ pub struct MemoryBus
     pub ppu: PPU::PPU,
     pub object_attribute_memory: [u8; OBJECT_ATTRIBUTE_MEMORY_SIZE],
     pub unused_mem: [u8; UNUSED_MEMORY_SIZE],
-    pub io_registers: [u8; IO_REGISTERS_SIZE],
     pub high_ram: [u8; HIGH_RAM_SIZE],
     pub interrupt_register: InterruptFlags,
     pub interrupt_flag: InterruptFlags,
@@ -101,7 +100,6 @@ impl MemoryBus
             echo_ram: [0; ECHO_RAM_SIZE],
             object_attribute_memory: [0; OBJECT_ATTRIBUTE_MEMORY_SIZE],
             unused_mem: [0; UNUSED_MEMORY_SIZE],
-            io_registers: [0; IO_REGISTERS_SIZE],
             high_ram: [0; HIGH_RAM_SIZE],
             interrupt_register: InterruptFlags::new(),
             interrupt_flag: InterruptFlags::new(),
@@ -134,7 +132,7 @@ impl MemoryBus
             ECHO_RAM_START..=ECHO_RAM_END => self.echo_ram[address - ECHO_RAM_START],
             OBJECT_ATTRIBUTE_MEMORY_START..=OBJECT_ATTRIBUTE_MEMORY_END => self.object_attribute_memory[address - OBJECT_ATTRIBUTE_MEMORY_START],
             UNUSED_MEMORY_START..=UNUSED_MEMORY_END => 0,
-            IO_REGISTERS_START..=IO_REGISTERS_END => self.io_registers[address - IO_REGISTERS_START],
+            IO_REGISTERS_START..=IO_REGISTERS_END => self.read_io_registers(address),
             HIGH_RAM_START..=HIGH_RAM_END => self.high_ram[address - HIGH_RAM_START],
             INTERRUPT_REGISTER => self.interrupt_register.to_byte(),
             _ => {panic!("UNKNOWN ADDRESS 0x{:x}", address)}
@@ -162,7 +160,7 @@ impl MemoryBus
             ECHO_RAM_START..=ECHO_RAM_END => {self.echo_ram[address - ECHO_RAM_START] = value;},
             OBJECT_ATTRIBUTE_MEMORY_START..=OBJECT_ATTRIBUTE_MEMORY_END => {self.object_attribute_memory[address - OBJECT_ATTRIBUTE_MEMORY_START] = value;},
             UNUSED_MEMORY_START..=UNUSED_MEMORY_END => {panic!("ATTEMPT TO WRITE TO UNUSED MEMORY ADDRESS 0x{:x}", address);},
-            IO_REGISTERS_START..=IO_REGISTERS_END => {self.io_registers[address - IO_REGISTERS_START] = value; if address == 0xFF50 {self.disable_boot_rom();}},
+            IO_REGISTERS_START..=IO_REGISTERS_END => {self.write_io_registers(address, value)},
             HIGH_RAM_START..=HIGH_RAM_END => {self.high_ram[address - HIGH_RAM_START] = value;},
             INTERRUPT_REGISTER => {self.interrupt_register.from_byte(value);},
             _ => {panic!("UNKNOWN ADDRESS 0x{:x}", address)}
@@ -175,5 +173,18 @@ impl MemoryBus
         let hi = ((value & 0xFF00) >> 8) as u8;
         self.write_byte(address, lo);
         self.write_byte(address + 1, hi);
+    }
+
+    pub fn read_io_registers(&mut self, address: usize) -> u8
+    {
+        match address
+        {
+            0xFF00 => {},
+        }
+    }
+
+    pub fn write_io_registers(&mut self, address: usize, value: u8)
+    {
+
     }
 }
