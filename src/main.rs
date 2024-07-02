@@ -3,6 +3,7 @@ pub mod Memory;
 pub mod PPU;
 pub mod InterruptFlags;
 pub mod Joypad;
+pub mod Timer;
 
 use std::env::args;
 use std::fs::File;

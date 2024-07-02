@@ -1,4 +1,5 @@
-struct Joypad
+#[derive(Clone, Copy)]
+pub struct Joypad
 {
     select_buttons: bool,
     select_dpad: bool,
@@ -26,6 +27,31 @@ impl std::convert::From<Joypad> for u8
 {
     fn from(value: Joypad) -> Self 
     {
-        
+        let reg: u8 = ((value.select_buttons as u8) << 5) | ((value.select_dpad as u8) << 4) | ((value.start_down as u8) << 3) | ((value.select_up as u8) << 2 | ((value.b_left as u8) << 1)) | (value.a_right as u8);
+        reg
+    }
+}
+impl Joypad
+{
+    pub fn new() -> Self
+    {
+        Joypad 
+        { 
+            select_buttons: true,
+            select_dpad: true,
+            start_down: true,
+            select_up: true,
+            b_left: true,
+            a_right: true 
+        }
+    }
+    pub fn reset_joypad(&mut self)
+    {
+        self.select_buttons = true;
+        self.select_dpad = true;
+        self.start_down = true;
+        self.select_up = true;
+        self.b_left = true;
+        self.a_right = true;
     }
 }

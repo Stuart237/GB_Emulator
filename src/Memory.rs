@@ -1,4 +1,4 @@
-use crate::{InterruptFlags::InterruptFlags, PPU};
+use crate::{InterruptFlags::InterruptFlags, Joypad, PPU};
 
 pub struct MemoryBus
 {
@@ -11,6 +11,7 @@ pub struct MemoryBus
     pub ppu: PPU::PPU,
     pub object_attribute_memory: [u8; OBJECT_ATTRIBUTE_MEMORY_SIZE],
     pub unused_mem: [u8; UNUSED_MEMORY_SIZE],
+    pub joypad: Joypad::Joypad,
     pub high_ram: [u8; HIGH_RAM_SIZE],
     pub interrupt_register: InterruptFlags,
     pub interrupt_flag: InterruptFlags,
@@ -99,6 +100,7 @@ impl MemoryBus
             working_ram: [0; WORKING_RAM_SIZE],
             echo_ram: [0; ECHO_RAM_SIZE],
             object_attribute_memory: [0; OBJECT_ATTRIBUTE_MEMORY_SIZE],
+            joypad: Joypad::Joypad::new(),
             unused_mem: [0; UNUSED_MEMORY_SIZE],
             high_ram: [0; HIGH_RAM_SIZE],
             interrupt_register: InterruptFlags::new(),
@@ -179,12 +181,20 @@ impl MemoryBus
     {
         match address
         {
-            0xFF00 => {},
+            0xFF00 => {self.joypad.into()},
+            0xFF01 => {/*SERIAL TRANSFER DATA*/0},
+            0xFF02 => {/*SERIAL TRANSFER CONTROL*/0},
+            0xFF04 => {}
+            _      => panic!("HELP")
         }
     }
 
     pub fn write_io_registers(&mut self, address: usize, value: u8)
     {
-
+        match address
+        {
+            0xFF00 => {self.joypad = value.into();},
+            _      => panic!("HELP"),
+        }
     }
 }
