@@ -1,17 +1,14 @@
-use std::ptr::null;
-
-use crate::InterruptFlags::InterruptFlags;
+use crate::{InterruptFlags::InterruptFlags, PPU};
 
 pub struct MemoryBus
 {
     pub boot_rom: [u8; BOOT_ROM_SIZE],
     pub game_rom_bank_zero: [u8; GAME_ROM_BANK_ZERO_SIZE],
     pub game_rom_bank_n: [u8; GAME_ROM_BANK_N_SIZE],
-    pub tile_ram: [u8; TILE_RAM_SIZE],
-    pub background_map: [u8; BACKGROUND_MAP_SIZE],
     pub cartridge_ram: [u8; CARTRIDGE_RAM_SIZE],
     pub working_ram: [u8; WORKING_RAM_SIZE],
     pub echo_ram: [u8; ECHO_RAM_SIZE],
+    pub ppu: PPU::PPU,
     pub object_attribute_memory: [u8; OBJECT_ATTRIBUTE_MEMORY_SIZE],
     pub unused_mem: [u8; UNUSED_MEMORY_SIZE],
     pub io_registers: [u8; IO_REGISTERS_SIZE],
@@ -33,13 +30,9 @@ pub const GAME_ROM_BANK_N_START: usize = 0x4000;
 pub const GAME_ROM_BANK_N_END: usize = 0x7FFF;
 pub const GAME_ROM_BANK_N_SIZE: usize = GAME_ROM_BANK_N_END - GAME_ROM_BANK_N_START + 1;
 
-pub const TILE_RAM_START: usize = 0x8000;
-pub const TILE_RAM_END: usize = 0x97FF;
-pub const TILE_RAM_SIZE: usize = TILE_RAM_END - TILE_RAM_START + 1;
-
-pub const BACKGROUND_MAP_START: usize = 0x9800;
-pub const BACKGROUND_MAP_END: usize = 0x9FFF;
-pub const BACKGROUND_MAP_SIZE: usize = BACKGROUND_MAP_END - BACKGROUND_MAP_START + 1;
+pub const VRAM_START: usize = 0x8000;
+pub const VRAM_END: usize = 0x9FFF;
+pub const VRAM_SIZE: usize = VRAM_END - VRAM_START + 1;
 
 pub const CARTRIDGE_RAM_START: usize = 0xA000;
 pub const CARTRIDGE_RAM_END: usize = 0xBFFF;
@@ -102,8 +95,7 @@ impl MemoryBus
             boot_rom,
             game_rom_bank_zero,
             game_rom_bank_n,
-            tile_ram: [0; TILE_RAM_SIZE],
-            background_map: [0; BACKGROUND_MAP_SIZE],
+            ppu: PPU::PPU::new(),
             cartridge_ram: [0; CARTRIDGE_RAM_SIZE],
             working_ram: [0; WORKING_RAM_SIZE],
             echo_ram: [0; ECHO_RAM_SIZE],
@@ -136,8 +128,7 @@ impl MemoryBus
             }
             GAME_ROM_BANK_ZERO_START..=GAME_ROM_BANK_ZERO_END => self.game_rom_bank_zero[address],
             GAME_ROM_BANK_N_START..=GAME_ROM_BANK_N_END => self.game_rom_bank_n[address - GAME_ROM_BANK_N_START],
-            TILE_RAM_START..=TILE_RAM_END => self.tile_ram[address - TILE_RAM_START],
-            BACKGROUND_MAP_START..=BACKGROUND_MAP_END => self.background_map[address - BACKGROUND_MAP_START],
+            VRAM_START..=VRAM_END => self.ppu.read_from_vram(address),
             CARTRIDGE_RAM_START..=CARTRIDGE_RAM_END => self.cartridge_ram[address - CARTRIDGE_RAM_START],
             WORKING_RAM_START..=WORKING_RAM_END => self.working_ram[address - WORKING_RAM_START],
             ECHO_RAM_START..=ECHO_RAM_END => self.echo_ram[address - ECHO_RAM_START],
@@ -165,8 +156,7 @@ impl MemoryBus
         {
             GAME_ROM_BANK_ZERO_START..=GAME_ROM_BANK_ZERO_END => {self.game_rom_bank_zero[address] = value;},
             GAME_ROM_BANK_N_START..=GAME_ROM_BANK_N_END => {self.game_rom_bank_n[address - GAME_ROM_BANK_N_START] = value;},
-            TILE_RAM_START..=TILE_RAM_END => {self.tile_ram[address - TILE_RAM_START] = value;},
-            BACKGROUND_MAP_START..=BACKGROUND_MAP_END => {self.background_map[address - BACKGROUND_MAP_START] = value;},
+            VRAM_START..=VRAM_END => {self.ppu.write_to_vram(address, value);},
             CARTRIDGE_RAM_START..=CARTRIDGE_RAM_END => {self.cartridge_ram[address - CARTRIDGE_RAM_START] = value;},
             WORKING_RAM_START..=WORKING_RAM_END => {self.working_ram[address - WORKING_RAM_START] = value;},
             ECHO_RAM_START..=ECHO_RAM_END => {self.echo_ram[address - ECHO_RAM_START] = value;},

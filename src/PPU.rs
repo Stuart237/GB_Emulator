@@ -62,7 +62,65 @@ fn empty_tile() -> Tile
 {
     [[TilePixelValue::Zero; 8]; 8]
 }
+pub const VRAM_SIZE: usize = 0x2000;
+pub const TILE_COUNT: usize = 384;
+pub const SCREEN_WIDTH: usize = 160;
+pub const SCREEN_HEIGHT: usize = 144;
 pub struct PPU
 {
-    
+    vram: [u8; VRAM_SIZE],
+    tiles: [Tile; TILE_COUNT],
+    mode: PPUModes,
+}
+
+pub enum PPUModes
+{
+    OAMScan,
+    DrawingPixels,
+    VBlank,
+    HBlank
+}
+impl PPU
+{
+    pub fn new() -> PPU
+    {
+        PPU
+        {
+            vram: [0; VRAM_SIZE],
+            tiles: [empty_tile(); TILE_COUNT],
+            mode: PPUModes::OAMScan,
+        }
+    }
+    pub fn write_to_vram(&mut self, address: usize, value: u8)
+    {
+        self.vram[address] = value;
+        if address >= 1800
+        {
+            return;
+        }
+        //We need to recreate the tile row if we change one of its bytes. Remember, tiles' rows start at even addresses.
+        let tile_start_add = address & 0xFFFE;
+        let byte1 = self.vram[tile_start_add];
+        let byte2 = self.vram[tile_start_add + 1];
+
+        let tile = address / 16;
+        let tile_row = (address % 16) / 2;
+        for i in 0..8
+        {
+            let msb = (byte2 << (7 - i));
+            let lsb = (byte1 << (7 - i));
+            let pixel_colour = match (msb != 0, lsb != 0)
+            {
+                (true, true) => TilePixelValue::Three,
+                (true, false) => TilePixelValue::Two,
+                (false, true) => TilePixelValue::One,
+                (false, false) => TilePixelValue::Zero
+            };
+            self.tiles[i][tile_row][tile] = pixel_colour;
+        }
+    }
+    pub fn read_from_vram(&mut self, address: usize) -> u8
+    {
+        self.vram[address]
+    }
 }
