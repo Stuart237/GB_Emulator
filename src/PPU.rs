@@ -74,6 +74,21 @@ enum ObjectPalette
 {
     Zero, One
 }
+enum TileMapArea
+{
+    X9800,
+    X9C00
+}
+enum BGWindowTiles
+{
+    X8000,
+    X8800
+}
+enum ObjectSize
+{
+    O8x8,
+    O8x16
+}
 #[derive(Clone, Copy)]
 struct Object
 {
@@ -109,6 +124,13 @@ pub struct PPU
     mode: PPUModes,
     obp0: Palette,
     obp1: Palette,
+    lcd_enabled: bool,
+    window_tilemap: TileMapArea,
+    window_enabled: bool,
+    bg_window_tiles: BGWindowTiles,
+    object_enabled: bool,
+    object_size: ObjectSize,
+    bg_window_enabled: bool,
 }
 
 pub enum PPUModes
