@@ -19,13 +19,13 @@ impl std::convert::From<u8> for Colour
         }
     }
 }
-pub struct BackgroundColors(Colour, Colour, Colour, Colour);
+pub struct Palette(Colour, Colour, Colour, Colour);
 
-impl BackgroundColors
+impl Palette
 {
-    fn new() -> BackgroundColors
+    fn new() -> Palette
     {
-        BackgroundColors
+        Palette
         (
             Colour::White,
             Colour::LightGray,
@@ -35,11 +35,11 @@ impl BackgroundColors
     }
 }
 //Palette can be altered, so this must be implemented. Also why above is just 4 colours as opposed to using Colour again.
-impl std::convert::From<u8> for BackgroundColors
+impl std::convert::From<u8> for Palette
 {
     fn from(value: u8) -> Self
     {
-        BackgroundColors
+        Palette
         (
             (value & 0b11).into(),
             (value >> 2 & 0b11).into(),
@@ -68,14 +68,15 @@ struct Object
     tile: u8,
     x_flip: bool,
     y_flip: bool,
-    pallette: ObjectPalette
+    pallette: ObjectPalette,
+    priority: bool,
 }
 
 fn empty_tile() -> Tile
 {
     [[TilePixelValue::Zero; 8]; 8]
 }
-pub const VRAM_SIZE: usize = 0x2000;
+pub const VRAM_SIZE: usize = 0x1800;
 pub const TILE_COUNT: usize = 384;
 pub const SCREEN_WIDTH: usize = 160;
 pub const SCREEN_HEIGHT: usize = 144;
@@ -85,6 +86,9 @@ pub struct PPU
     vram: [u8; VRAM_SIZE],
     tiles: [Tile; TILE_COUNT],
     mode: PPUModes,
+    obp0: Palette,
+    obp1: Palette,
+
 }
 
 pub enum PPUModes
@@ -136,5 +140,13 @@ impl PPU
     pub fn read_from_vram(&mut self, address: usize) -> u8
     {
         self.vram[address]
+    }
+    pub fn write_oam(&mut self, address: usize, value: u8)
+    {
+
+    }
+    pub fn read_oam(&mut self, address: usize) -> u8
+    {
+        0
     }
 }

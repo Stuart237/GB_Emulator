@@ -1,4 +1,10 @@
-use crate::{InterruptFlags::InterruptFlags, Joypad, PPU};
+use crate::
+{
+    InterruptFlags::InterruptFlags,
+    Joypad,
+    Timer::{Frequency, Timer},
+    PPU
+};
 
 pub struct MemoryBus
 {
@@ -15,7 +21,9 @@ pub struct MemoryBus
     pub high_ram: [u8; HIGH_RAM_SIZE],
     pub interrupt_register: InterruptFlags,
     pub interrupt_flag: InterruptFlags,
-    pub boot_rom_enabled: bool
+    pub boot_rom_enabled: bool,
+    pub timer: Timer,
+    pub divider: Timer
 }
 
 pub const BOOT_ROM_START: usize = 0x0000;
@@ -89,7 +97,8 @@ impl MemoryBus
         {
             game_rom_bank_n[i] = game_rom_buffer[GAME_ROM_BANK_N_SIZE + i];
         }
-
+        let mut divider = Timer::new(crate::Timer::Frequency::F16384);
+        divider.enabled = true;
         Self
         {
             boot_rom,
@@ -105,7 +114,9 @@ impl MemoryBus
             high_ram: [0; HIGH_RAM_SIZE],
             interrupt_register: InterruptFlags::new(),
             interrupt_flag: InterruptFlags::new(),
-            boot_rom_enabled: true
+            boot_rom_enabled: true,
+            timer: Timer::new(crate::Timer::Frequency::F4096),
+            divider
         }
     }
 
@@ -184,7 +195,19 @@ impl MemoryBus
             0xFF00 => {self.joypad.into()},
             0xFF01 => {/*SERIAL TRANSFER DATA*/0},
             0xFF02 => {/*SERIAL TRANSFER CONTROL*/0},
-            0xFF04 => {}
+            0xFF04 => {self.divider.value},
+            0xFF05 => {self.timer.value},
+            0xFF06 => {self.timer.modulo},
+            0xFF07 => {let clock: u8 = match self.timer.frequency
+                        {
+                            Frequency::F4096 => {0b00},
+                            Frequency::F16384 => {0b11},
+                            Frequency::F65536 => {0b10},
+                            Frequency::F262144 => {0b01},
+                        };
+                        (self.timer.enabled as u8) << 2 | clock
+                        },
+            0xFF0F => {self.interrupt_flag.to_byte()}
             _      => panic!("HELP")
         }
     }

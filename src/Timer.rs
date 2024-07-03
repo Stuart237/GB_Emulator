@@ -43,7 +43,7 @@ impl Timer
             value: 0,
             cycles: 0,
             modulo: 0,
-            enabled: true,
+            enabled: false,
         }
     }
     //Advance the timer by how many cycles the cpu just did with all them instructions n that
