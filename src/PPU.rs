@@ -128,8 +128,9 @@ pub struct PPU
     window_tilemap: TileMapArea,
     window_enabled: bool,
     bg_window_tiles: BGWindowTiles,
-    object_enabled: bool,
+    bg_tilemap: TileMapArea,
     object_size: ObjectSize,
+    object_enabled: bool,
     bg_window_enabled: bool,
 }
 
@@ -153,6 +154,14 @@ impl PPU
             mode: PPUModes::OAMScan,
             obp0: Palette::new(),
             obp1: Palette::new(),
+            lcd_enabled: true,
+            window_tilemap: TileMapArea::X9800,
+            window_enabled: false,
+            bg_window_tiles: BGWindowTiles::X8000,
+            bg_tilemap: TileMapArea::X9800,
+            object_size: ObjectSize::O8x8,
+            object_enabled: false,
+            bg_window_enabled: true
         }
     }
     pub fn write_to_vram(&mut self, address: usize, value: u8)
@@ -189,7 +198,10 @@ impl PPU
     }
     pub fn write_oam(&mut self, address: usize, value: u8)
     {
-
+        match address
+        {
+            _   => panic!("WRITING TO UNKNOWN REGISTER 0X{:x}", address),
+        }
     }
     pub fn read_oam(&mut self, address: usize) -> u8
     {
