@@ -169,9 +169,13 @@ impl PPU
     pub fn write_to_vram(&mut self, address: usize, value: u8)
     {
         self.vram[address] = value;
-        if address >= 1800
+        if address >= 0x1800
         {
             return;
+        }
+        else
+        {
+            self.write_oam(address, value);   
         }
         //We need to recreate the tile row if we change one of its bytes. Remember, tiles' rows start at even addresses.
         let tile_start_add = address & 0xFFFE;
@@ -182,8 +186,8 @@ impl PPU
         let tile_row = (address % 16) / 2;
         for i in 0..8
         {
-            let msb = (byte2 << (7 - i));
-            let lsb = (byte1 << (7 - i));
+            let msb = byte2 & (1 << (7 - i));
+            let lsb = byte1 & (1 << (7 - i));
             let pixel_colour = match (msb != 0, lsb != 0)
             {
                 (true, true) => TilePixelValue::Three,
@@ -200,33 +204,61 @@ impl PPU
     }
     pub fn write_oam(&mut self, address: usize, value: u8)
     {
-        match address
+        let byte = address % 4;
+        let index = address / 4;
+        match byte
         {
-            _   => panic!("WRITING TO UNKNOWN REGISTER 0X{:x}", address),
+            0   => self.oam[index].y = value,
+            1   => self.oam[index].x = value,
+            2   => {
+                        match self.object_size
+                        {
+                            ObjectSize::O8x8 => {self.oam[index].tile_index = value;},
+                            ObjectSize::O8x16 => {self.oam[index].tile_index = value & 0xFE;},
+                        }
+                    }
+            3   =>  {
+                        self.oam[index].priority = (value & 0x80) != 0;
+                        self.oam[index].y_flip = (value & 0x40) != 0;
+                        self.oam[index].x_flip = (value & 0x20) != 0;
+                        if (value & 0x10) != 0
+                        {
+                            self.oam[index].pallette = ObjectPalette::Zero;
+                        }
+                        else 
+                        {
+                            self.oam[index].pallette = ObjectPalette::One;    
+                        }
+                    }
+            _   => panic!("WRITING TO UNKNOWN OBJECT 0X{:x}", address),
         }
     }
     pub fn read_oam(&mut self, address: usize) -> u8
     {
         let byte = address % 4;
-        let address = address / 4;
+        let index = address / 4;
         match byte
         {
-            0   => self.oam[address].y,
-            1   => self.oam[address].x,
+            0   => self.oam[index].y,
+            1   => self.oam[index].x,
             2   =>  {
                         match self.object_size
                         {
-                            ObjectSize::O8x8 => {self.oam[address].tile_index},
-                            ObjectSize::O8x16 => {self.oam[address].tile_index & 0xFE},
+                            ObjectSize::O8x8 => {self.oam[index].tile_index},
+                            ObjectSize::O8x16 => {self.oam[index].tile_index & 0xFE},
                         }
                     }
             3   =>  {
-                        0x0 | ((self.oam[address].priority as u8) << 7)
-                        | ((self.oam[address].y_flip as u8) << 6)
-                        | ((self.oam[address].x_flip as u8) << 5)
-                        | match self.oam[address].pallette {ObjectPalette::One => {0 << 4}, ObjectPalette::Zero => {1 << 4}}
+                        0x0 | ((self.oam[index].priority as u8) << 7)
+                        | ((self.oam[index].y_flip as u8) << 6)
+                        | ((self.oam[index].x_flip as u8) << 5)
+                        | match self.oam[index].pallette {ObjectPalette::One => {1 << 4}, ObjectPalette::Zero => {0 << 4}}
                     },
             _   => panic!("READING FROM UNKNOWN LINE 0X{:x}", address),
         }
+    }
+    pub fn step()
+    {
+        
     }
 }
