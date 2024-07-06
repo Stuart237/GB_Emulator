@@ -848,13 +848,14 @@ impl CPU
             self.handle_interrupt(0x0060, 4);
         }
     }
-    fn handle_interrupt(&mut self, address: usize, bit: u8)
+    fn handle_interrupt(&mut self, address: u16, bit: u8)
     {
         self.ime = false;
         let new_interrupt = self.bus.interrupt_flag.to_byte() & !(1 << bit);
         self.bus.interrupt_flag.from_byte(new_interrupt);
         self.sp = self.sp.wrapping_sub(2);
         self.bus.write_word(self.sp, self.pc);
+        self.pc = address;
     }
     fn execute(&mut self, instruction: Instruction) -> u16
         {

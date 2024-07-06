@@ -118,11 +118,33 @@ impl Object
         }
     }
 }
+#[derive(Eq, PartialEq)]
+pub enum Interrupts
+{
+    None,
+    VBlank,
+    LCD,
+    Both,
+}
+impl Interrupts
+{
+    pub fn add(&mut self, interr: Interrupts)
+    {
+        match self
+        {
+            Interrupts::LCD => if interr == Interrupts::VBlank {*self = Interrupts::Both},
+            Interrupts::VBlank => if interr == Interrupts::LCD {*self = Interrupts::Both},
+            Interrupts::None => *self = interr,
+            _ => {},
+        }
+    }
+}
 pub struct PPU
 {
     vram: [u8; VRAM_SIZE],
     oam: [Object; NUMBER_OF_OBJECTS],
     tiles: [Tile; TILE_COUNT],
+    cycles: u16,
     mode: PPUModes,
     obp0: Palette,
     obp1: Palette,
@@ -134,16 +156,26 @@ pub struct PPU
     object_size: ObjectSize,
     object_enabled: bool,
     bg_window_enabled: bool,
+    ly: u8,
+    lyc: u8,
+    ly_is_lyc: bool,
+    lyc_selected: bool,
+    oamscan_selected: bool,
+    vblank_selected: bool,
+    hblank_selected: bool,
+    scy: u8,
+    scx: u8,
+    wy: u8,
+    wx: u8,
 }
-
+#[derive(Clone, Copy)]
 pub enum PPUModes
 {
     OAMScan,
-    DrawingPixels,
+    PixelTransfer,
     VBlank,
     HBlank
 }
-
 impl PPU
 {
     pub fn new() -> PPU
@@ -153,6 +185,7 @@ impl PPU
             vram: [0; VRAM_SIZE],
             oam: [Object::new(); NUMBER_OF_OBJECTS],
             tiles: [empty_tile(); TILE_COUNT],
+            cycles: 0,
             mode: PPUModes::OAMScan,
             obp0: Palette::new(),
             obp1: Palette::new(),
@@ -163,7 +196,18 @@ impl PPU
             bg_tilemap: TileMapArea::X9800,
             object_size: ObjectSize::O8x8,
             object_enabled: false,
-            bg_window_enabled: true
+            bg_window_enabled: true,
+            ly: 0,
+            lyc: 0,
+            ly_is_lyc: false,
+            lyc_selected: false,
+            oamscan_selected: false,
+            vblank_selected: false,
+            hblank_selected: false,
+            scy: 0,
+            scx: 0,
+            wy: 0,
+            wx: 0,
         }
     }
     pub fn write_to_vram(&mut self, address: usize, value: u8)
@@ -257,8 +301,92 @@ impl PPU
             _   => panic!("READING FROM UNKNOWN LINE 0X{:x}", address),
         }
     }
-    pub fn step()
+    pub fn step(&mut self, cycles: u8) -> Interrupts
     {
-        
+        let mut request = Interrupts::None;
+        let mode = self.mode;
+        self.cycles += cycles as u16;
+        match mode
+        {
+            PPUModes::OAMScan => 
+            {
+                if self.cycles >= 80
+                {
+                    self.cycles = self.cycles % 80;
+                    self.mode = PPUModes::PixelTransfer;
+                }
+            },
+            PPUModes::PixelTransfer => 
+            {
+                if self.cycles >= 172
+                {
+                    self.cycles = self.cycles % 172;
+                    if self.hblank_selected
+                    {
+                        request.add(Interrupts::LCD);
+                    }
+                    self.mode = PPUModes::HBlank;
+                    //Render a scan line here
+                }
+            },
+            PPUModes::HBlank => 
+            {
+                if self.cycles >= 284
+                {
+                    self.cycles = self.cycles % 284;
+                    self.ly += 1;
+                    if self.ly >= 144
+                    {
+                        if self.vblank_selected
+                        {
+                            self.mode = PPUModes::VBlank;
+                            request.add(Interrupts::VBlank);
+                            if self.vblank_selected
+                            {
+                                request.add(Interrupts::LCD);
+                            }
+                        }
+                        else
+                        {
+                            self.mode = PPUModes::OAMScan;
+                            if self.oamscan_selected
+                            {
+                                request.add(Interrupts::LCD);
+                            }
+                        }
+                        request = self.lyc_check(request);
+                    }
+                }
+            },
+            PPUModes::VBlank => 
+            {
+                if self.cycles >= 456
+                {
+                    self.cycles = self.cycles % 456;
+                    self.ly += 1;
+                    if self.ly == 154
+                    {
+                        self.mode = PPUModes::OAMScan;
+                        self.ly = 0;
+                        if self.oamscan_selected
+                        {
+                            request.add(Interrupts::LCD);
+                        }
+                    }
+                    request = self.lyc_check(request);
+                }
+            },
+        }
+        request
+    }
+    pub fn lyc_check(&mut self, mut request: Interrupts) -> Interrupts
+    {
+        let check = self.ly == self.lyc;
+        if check & self.lyc_selected
+        {
+            request.add(Interrupts::LCD);
+        }
+        self.ly_is_lyc = check;
+        request
     }
 }
