@@ -92,13 +92,14 @@ enum ObjectSize
 #[derive(Clone, Copy)]
 struct Object
 {
-    x: i16,
-    y: i16,
+    x: u8,
+    y: u8,
     tile: u8,
     x_flip: bool,
     y_flip: bool,
     pallette: ObjectPalette,
     priority: bool,
+    tile_index: u8,
 }
 impl Object
 {
@@ -113,6 +114,7 @@ impl Object
             y_flip: false,
             pallette: ObjectPalette::Zero,
             priority: false,
+            tile_index: 0,
         }
     }
 }
@@ -205,6 +207,26 @@ impl PPU
     }
     pub fn read_oam(&mut self, address: usize) -> u8
     {
-        0
+        let byte = address % 4;
+        let address = address / 4;
+        match byte
+        {
+            0   => self.oam[address].y,
+            1   => self.oam[address].x,
+            2   =>  {
+                        match self.object_size
+                        {
+                            ObjectSize::O8x8 => {self.oam[address].tile_index},
+                            ObjectSize::O8x16 => {self.oam[address].tile_index & 0xFE},
+                        }
+                    }
+            3   =>  {
+                        0x0 | ((self.oam[address].priority as u8) << 7)
+                        | ((self.oam[address].y_flip as u8) << 6)
+                        | ((self.oam[address].x_flip as u8) << 5)
+                        | match self.oam[address].pallette {ObjectPalette::One => {0 << 4}, ObjectPalette::Zero => {1 << 4}}
+                    },
+            _   => panic!("READING FROM UNKNOWN LINE 0X{:x}", address),
+        }
     }
 }
